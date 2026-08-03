@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "租迹 ZUJI｜真实租客的转租平台",
-  description: "经过身份与租赁关系验证的转租平台，让转租回到租客之间。",
+  title: "租迹 ZUJI｜深圳真实租客的转租平台",
+  description: "深圳首发，经过实名认证与租赁关系验证的真实转租平台。",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
