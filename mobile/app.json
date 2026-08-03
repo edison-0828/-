@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "租迹 ZUJI",
+    "slug": "zuji-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "zuji",
+    "ios": { "supportsTablet": true, "bundleIdentifier": "com.zuji.rental" },
+    "android": { "package": "com.zuji.rental" },
+    "plugins": []
+  }
+}
