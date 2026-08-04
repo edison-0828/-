@@ -85,3 +85,18 @@ CREATE TABLE `viewing_requests` (
 --> statement-breakpoint
 CREATE INDEX `idx_viewing_requests_listing_status` ON `viewing_requests` (`listing_id`,`status`);--> statement-breakpoint
 CREATE INDEX `idx_viewing_requests_seeker_id` ON `viewing_requests` (`seeker_id`);
+--> statement-breakpoint
+CREATE TABLE `listing_verification_cases` (
+	`id` text PRIMARY KEY NOT NULL,
+	`listing_id` text NOT NULL,
+	`user_id` text NOT NULL,
+	`contract_status` text DEFAULT 'pending' NOT NULL,
+	`payment_status` text DEFAULT 'skipped' NOT NULL,
+	`reviewed_by` text,
+	`review_note` text,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+--> statement-breakpoint
+CREATE INDEX `idx_listing_verification_listing_id` ON `listing_verification_cases` (`listing_id`);--> statement-breakpoint
+CREATE INDEX `idx_listing_verification_review_status` ON `listing_verification_cases` (`contract_status`,`payment_status`);

@@ -36,6 +36,22 @@ export const verificationCases = sqliteTable("verification_cases", {
   reviewIdx: index("idx_verification_cases_review_status").on(table.realNameStatus, table.contractStatus),
 }));
 
+// Identity belongs to the user; lease evidence belongs to one listing.
+export const listingVerificationCases = sqliteTable("listing_verification_cases", {
+  id: text("id").primaryKey(),
+  listingId: text("listing_id").notNull(),
+  userId: text("user_id").notNull(),
+  contractStatus: text("contract_status").notNull().default("pending"),
+  paymentStatus: text("payment_status").notNull().default("skipped"),
+  reviewedBy: text("reviewed_by"),
+  reviewNote: text("review_note"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  listingIdx: index("idx_listing_verification_listing_id").on(table.listingId),
+  reviewIdx: index("idx_listing_verification_review_status").on(table.contractStatus, table.paymentStatus),
+}));
+
 export const listings = sqliteTable("listings", {
   id: text("id").primaryKey(),
   publisherId: text("publisher_id").notNull(),
