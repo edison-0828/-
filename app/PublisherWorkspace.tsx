@@ -1,60 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
-
-const copy = {
-  eyebrow: "\u6211\u8981\u8f6c\u79df \u00b7 \u53d1\u5e03\u5de5\u4f5c\u53f0",
-  title: "\u628a\u771f\u5b9e\u7684\u79df\u8d41\u7ecf\u5386\uff0c",
-  title2: "\u4ea4\u7ed9\u4e0b\u4e00\u4e2a\u79df\u5ba2\u3002",
-  intro: "\u5148\u586b\u5199\u623f\u6e90\u4fe1\u606f\uff0c\u518d\u4e3a\u8fd9\u5957\u623f\u6e90\u63d0\u4ea4\u5bf9\u5e94\u7684\u79df\u8d41\u8bc1\u660e\u3002",
-  info: "\u623f\u6e90\u4fe1\u606f",
-  infoHint: "\u8fd9\u4e9b\u5185\u5bb9\u4f1a\u5c55\u793a\u7ed9\u6b63\u5728\u627e\u623f\u7684\u79df\u5ba2",
-  titleLabel: "\u623f\u6e90\u6807\u9898",
-  area: "\u533a\u57df\u4e0e\u5c0f\u533a",
-  rent: "\u6708\u79df\u91d1",
-  available: "\u53ef\u5165\u4f4f\u65f6\u95f4",
-  expiry: "\u79df\u7ea6\u5230\u671f\u65f6\u95f4",
-  note: "\u8f6c\u79df\u8bf4\u660e",
-  proof: "\u672c\u5957\u623f\u6e90\u7684\u79df\u8d41\u8bc1\u660e",
-  proofHint: "\u5408\u540c\u9700\u8981\u4e0e\u672c\u5957\u623f\u6e90\u5339\u914d\uff0c\u6bcf\u53d1\u5e03\u65b0\u623f\u6e90\u90fd\u9700\u91cd\u65b0\u63d0\u4ea4",
-  contract: "\u4e0a\u4f20\u79df\u8d41\u5408\u540c",
-  contractHint: "PDF\u3001JPG\u3001PNG\uff0c\u7528\u4e8e\u6838\u5bf9\u672c\u5957\u623f\u6e90",
-  payment: "\u79df\u91d1\u652f\u4ed8\u8bb0\u5f55",
-  paymentHint: "\u53ef\u9009\uff0c\u4e0a\u4f20\u8fd1 3\u20136 \u4e2a\u6708\u53ef\u83b7\u5f97\u4f18\u5148\u66dd\u5149",
-  images: "\u623f\u6e90\u56fe\u7247",
-  imagesHint: "\u6700\u591a 8 \u5f20\uff0c\u7b2c\u4e00\u5f20\u4f5c\u4e3a\u5c01\u9762",
-  checklist: "\u53d1\u5e03\u68c0\u67e5\u6e05\u5355",
-  identity: "\u8eab\u4efd\u8ba4\u8bc1",
-  identityDone: "\u8d26\u6237\u5df2\u5b8c\u6210\uff0c\u53ef\u590d\u7528",
-  identityTodo: "\u63d0\u4ea4\u65f6\u5b8c\u6210",
-  contractDone: "\u672c\u5957\u623f\u6e90\u5408\u540c\u5df2\u9009\u62e9",
-  contractTodo: "\u8bf7\u4e0a\u4f20\u5bf9\u5e94\u5408\u540c",
-  submit: "\u63d0\u4ea4\u5ba1\u6838",
-  submitting: "\u63d0\u4ea4\u4e2d\u2026",
-  preview: "\u9884\u89c8\u623f\u6e90",
-  back: "\u8fd4\u56de\u627e\u623f",
-};
 
 type Props = { verified: boolean; onBack: () => void; onStartVerification: () => void };
 type FileItem = { name: string; url: string };
+type FormState = {
+  title: string;
+  district: string;
+  community: string;
+  rent: string;
+  date: string;
+  expiry: string;
+  note: string;
+};
+
+const emptyForm: FormState = { title: "", district: "", community: "", rent: "", date: "", expiry: "", note: "" };
 
 export default function PublisherWorkspace({ verified, onBack, onStartVerification }: Props) {
-  const [form, setForm] = useState({ title: "", area: "", rent: "", date: "", expiry: "", note: "" });
+  const [form, setForm] = useState(emptyForm);
   const [images, setImages] = useState<FileItem[]>([]);
   const [contractFile, setContractFile] = useState("");
   const [paymentFiles, setPaymentFiles] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const update = (key: keyof typeof form, value: string) => setForm((current) => ({ ...current, [key]: value }));
+  const [preview, setPreview] = useState(false);
+
+  const update = (key: keyof FormState, value: string) => {
+    setForm((current) => ({ ...current, [key]: value }));
+    if (error) setError("");
+  };
+
+  const rentValue = Number(form.rent.replace(/[^0-9.]/g, ""));
+  const basicsReady = Boolean(form.title.trim() && form.district.trim() && form.community.trim() && rentValue && form.date && form.expiry);
+  const completedSteps = useMemo(() => [basicsReady, Boolean(contractFile), images.length > 0].filter(Boolean).length, [basicsReady, contractFile, images.length]);
 
   const chooseImages = (event: ChangeEvent<HTMLInputElement>) => {
     const incoming = Array.from(event.target.files || []);
-    const selected = incoming.slice(0, Math.max(0, 8 - images.length)).map((file) => ({ name: file.name, url: URL.createObjectURL(file) }));
+    const available = Math.max(0, 8 - images.length);
+    const selected = incoming.slice(0, available).map((file) => ({ name: file.name, url: URL.createObjectURL(file) }));
     setImages((current) => [...current, ...selected]);
-    if (incoming.length > selected.length) setError("\u623f\u6e90\u56fe\u7247\u6700\u591a\u4e0a\u4f20 8 \u5f20\u3002");
+    if (incoming.length > available) setError("房源图片最多上传 8 张，已保留前 8 张。");
     event.currentTarget.value = "";
+  };
+
+  const removeImage = (target: FileItem) => {
+    URL.revokeObjectURL(target.url);
+    setImages((current) => current.filter((item) => item.url !== target.url));
   };
 
   const choosePaymentFiles = (event: ChangeEvent<HTMLInputElement>) => {
@@ -63,24 +56,64 @@ export default function PublisherWorkspace({ verified, onBack, onStartVerificati
     event.currentTarget.value = "";
   };
 
-  const submit = async () => {
-    if (!verified) return onStartVerification();
-    if (!contractFile) return setError("\u8bf7\u5148\u4e0a\u4f20\u672c\u5957\u623f\u6e90\u7684\u79df\u8d41\u5408\u540c\u3002");
-    const area = form.area.trim();
-    const [district = area, community = district] = area.split("·").map((part) => part.trim());
-    const rent = Number(form.rent.replace(/[^0-9.]/g, ""));
-    if (!form.title.trim() || !area || !rent || !form.date || !form.expiry) return setError("\u8bf7\u8865\u5145\u5b8c\u6574\u7684\u623f\u6e90\u4fe1\u606f\u3002");
-    if (form.expiry < form.date) return setError("\u79df\u7ea6\u5230\u671f\u65e5\u4e0d\u80fd\u65e9\u4e8e\u5165\u4f4f\u65e5\u3002");
-    setError(""); setSubmitting(true);
-    try {
-      const response = await fetch("/api/listings", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ title: form.title.trim(), district, community, monthlyRentCents: Math.round(rent * 100), availableFrom: form.date, leaseEndsAt: form.expiry, description: form.note.trim(), contractFileName: contractFile, paymentFileNames: paymentFiles, imageNames: images.map((image) => image.name) }) });
-      const payload = await response.json() as { error?: string };
-      if (!response.ok) return setError(payload.error || "\u63d0\u4ea4\u5ba1\u6838\u5931\u8d25\u3002");
-      setSubmitted(true);
-    } catch { setError("\u7f51\u7edc\u5f02\u5e38\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5\u3002"); } finally { setSubmitting(false); }
+  const validate = () => {
+    if (!form.title.trim()) return "请填写一个容易理解的房源标题。";
+    if (!form.district.trim()) return "请填写房源所在区域。";
+    if (!form.community.trim()) return "请填写小区名称。";
+    if (!rentValue) return "请填写正确的月租金。";
+    if (!form.date) return "请选择最早可入住时间。";
+    if (!form.expiry) return "请选择当前租约到期时间。";
+    if (form.expiry < form.date) return "租约到期时间不能早于可入住时间。";
+    if (!contractFile) return "请上传与这套房源对应的租赁合同。";
+    return "";
   };
 
-  if (submitted) return <section className="publisher-shell shell"><div className="success-card"><div className="success-icon">✓</div><p className="eyebrow">{"\u63d0\u4ea4\u6210\u529f"}</p><h1>{"\u623f\u6e90\u6b63\u5728\u5ba1\u6838\u4e2d"}</h1><p>{"\u8eab\u4efd\u9a8c\u8bc1\u4e0e\u672c\u5957\u623f\u6e90\u7684\u5408\u540c\u5df2\u5206\u5f00\u8bb0\u5f55\u3002"}</p><button className="dark-button full" onClick={onBack}>{copy.back} <span>→</span></button></div></section>;
+  const submit = async () => {
+    const validationError = validate();
+    if (validationError) return setError(validationError);
+    if (!verified) return onStartVerification();
+    setError("");
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/listings", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          title: form.title.trim(),
+          district: form.district.trim(),
+          community: form.community.trim(),
+          monthlyRentCents: Math.round(rentValue * 100),
+          availableFrom: form.date,
+          leaseEndsAt: form.expiry,
+          description: form.note.trim(),
+          contractFileName: contractFile,
+          paymentFileNames: paymentFiles,
+          imageNames: images.map((image) => image.name),
+        }),
+      });
+      const payload = await response.json() as { error?: string };
+      if (!response.ok) return setError(payload.error || "提交审核失败，请稍后重试。");
+      setSubmitted(true);
+    } catch {
+      setError("网络异常，请稍后重试。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-  return <section className="publisher-shell shell"><div className="publisher-head"><div><p className="eyebrow">{copy.eyebrow}</p><h1>{copy.title}<br /><i>{copy.title2}</i></h1><p>{copy.intro}</p></div><button className="back-link" onClick={onBack}>← {copy.back}</button></div><div className="publisher-layout"><div className="publish-form publish-form-v2"><section className="form-section"><div className="form-section-heading"><span>01</span><div><h2>{copy.info}</h2><p>{copy.infoHint}</p></div></div><label>{copy.titleLabel}<input value={form.title} onChange={(event) => update("title", event.target.value)} placeholder="\u4f8b\u5982\uff1a\u540e\u6d77\u65c1\u7684\u5b89\u9759\u6b21\u5367" /></label><div className="form-row"><label>{copy.area}<input value={form.area} onChange={(event) => update("area", event.target.value)} placeholder="\u4f8b\u5982\uff1a\u5357\u5c71 · \u540e\u6d77" /></label><label>{copy.rent}<input value={form.rent} onChange={(event) => update("rent", event.target.value)} placeholder="¥ 3,600" /></label></div><div className="form-row"><label>{copy.available}<input type="date" value={form.date} onChange={(event) => update("date", event.target.value)} /></label><label>{copy.expiry}<input type="date" value={form.expiry} min={form.date || undefined} onChange={(event) => update("expiry", event.target.value)} /></label></div><label>{copy.note}<textarea value={form.note} onChange={(event) => update("note", event.target.value)} placeholder="\u4ecb\u7ecd\u623f\u95f4\u3001\u5ba4\u53cb\u3001\u5468\u8fb9\u548c\u4f60\u5e0c\u671b\u7684\u79df\u5ba2\u2026" rows={4} /></label></section><section className="form-section"><div className="form-section-heading"><span>02</span><div><h2>{copy.proof}</h2><p>{copy.proofHint}</p></div></div><label className={`proof-upload ${contractFile ? "ready" : ""}`}><input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(event) => setContractFile(event.target.files?.[0]?.name || "")} /><span className="proof-upload-icon">{contractFile ? "✓" : "↑"}</span><span className="proof-upload-copy"><b>{contractFile || copy.contract}</b><small>{copy.contractHint}</small></span><span className="proof-upload-action">{contractFile ? "\u5df2\u9009\u62e9" : "\u9009\u62e9\u6587\u4ef6"}</span></label><label className="proof-upload optional-proof"><input type="file" accept=".pdf,.jpg,.jpeg,.png" multiple onChange={choosePaymentFiles} /><span className="proof-upload-icon">＋</span><span className="proof-upload-copy"><b>{copy.payment}</b><small>{copy.paymentHint}</small></span><span className="proof-upload-action">{paymentFiles.length ? `${paymentFiles.length} \u4efd` : "\u53ef\u9009"}</span></label></section><section className="form-section"><div className="form-section-heading"><span>03</span><div><h2>{copy.images}</h2><p>{copy.imagesHint}</p></div></div><div className="image-grid-v2"><label className="image-add-tile"><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={chooseImages} /><span>＋</span><small>{images.length}/8</small></label>{images.map((image, index) => <div className="image-tile-v2" key={image.url}><img src={image.url} alt={image.name} />{index === 0 && <b>\u5c01\u9762</b>}<button type="button" onClick={() => { URL.revokeObjectURL(image.url); setImages((current) => current.filter((item) => item.url !== image.url)); }}>×</button></div>)}</div></section>{error && <div className="form-error">! {error}</div>}<div className="form-actions form-actions-v2"><button className="back-link" onClick={onBack}>{copy.back}</button><button className="preview-button" type="button">{copy.preview}</button><button className="dark-button" disabled={submitting} onClick={submit}>{submitting ? copy.submitting : copy.submit} <span>→</span></button></div></div><aside className="publisher-side publisher-side-v2"><div className="checklist-card"><span className="side-label">{copy.checklist}</span><div className="checklist-line"><span className={`checklist-icon ${verified ? "done" : ""}`}>{verified ? "✓" : "01"}</span><div><b>{copy.identity}</b><small>{verified ? copy.identityDone : copy.identityTodo}</small></div></div><div className="checklist-line"><span className={`checklist-icon ${contractFile ? "done" : ""}`}>{contractFile ? "✓" : "02"}</span><div><b>{copy.proof}</b><small>{contractFile ? copy.contractDone : copy.contractTodo}</small></div></div><div className="checklist-line"><span className={`checklist-icon ${images.length ? "done" : ""}`}>{images.length ? "✓" : "03"}</span><div><b>{copy.images}</b><small>{images.length ? `${images.length}/8` : "\u53ef\u9009\uff0c\u5efa\u8bae\u81f3\u5c11 1 \u5f20"}</small></div></div></div><div className="side-tip"><b>{"\u53d1\u5e03\u524d\u63d0\u9192"}</b><p>{"\u8eab\u4efd\u8ba4\u8bc1\u53ef\u4ee5\u590d\u7528\uff0c\u4f46\u5408\u540c\u5fc5\u987b\u4e0e\u5f53\u524d\u623f\u6e90\u5339\u914d\u3002"}</p></div></aside></div></section>;
+  if (submitted) {
+    return <section className="zuji-publisher"><div className="zuji-container"><div className="zuji-publish-success"><span>✓</span><small>提交成功</small><h1>房源已进入审核</h1><p>我们会分别核对发布者身份和这套房源的租赁合同，审核结果会显示在房源状态中。</p><div><b>接下来会发生什么？</b><ol><li>核对本套房源合同与地址</li><li>审核通过后进入找房列表</li><li>有租客联系时通过站内消息通知你</li></ol></div><button onClick={onBack}>返回找房 <span>→</span></button></div></div></section>;
+  }
+
+  return <section className="zuji-publisher"><div className="zuji-container"><header className="zuji-publisher-head"><div><span>我要转租 · 发布工作台</span><h1>发布一套真实房源</h1><p>先把房子介绍清楚。提交时如果尚未实名，我们再提醒你完成认证。</p></div><button onClick={onBack}>← 返回找房</button></header><div className="zuji-publish-progress"><div><b>01</b><span>填写房源</span><i className={basicsReady ? "done" : ""} /></div><div><b>02</b><span>上传证明</span><i className={contractFile ? "done" : ""} /></div><div><b>03</b><span>添加图片</span><i className={images.length ? "done" : ""} /></div><small>{completedSteps}/3 已准备</small></div><div className="zuji-publisher-layout"><div className="zuji-publish-form"><PublishSection number="01" title="房源基本信息" hint="带 * 的内容会展示给找房用户，请尽量准确填写。"><label>房源标题 <Required /><input value={form.title} onChange={(event) => update("title", event.target.value)} placeholder="例如：后海地铁站旁安静次卧，采光很好" maxLength={40} /><small className="zuji-field-help">一句话说清位置、房型或最大优点</small></label><div className="zuji-form-row"><label>区域 <Required /><input value={form.district} onChange={(event) => update("district", event.target.value)} placeholder="例如：南山" /></label><label>小区 <Required /><input value={form.community} onChange={(event) => update("community", event.target.value)} placeholder="例如：蔚蓝海岸" /></label></div><div className="zuji-form-row"><label>月租金 <Required /><div className="zuji-input-affix"><span>¥</span><input inputMode="decimal" value={form.rent} onChange={(event) => update("rent", event.target.value)} placeholder="3600" /><em>元/月</em></div></label><label>最早可入住 <Required /><input type="date" value={form.date} onChange={(event) => update("date", event.target.value)} /></label></div><label>当前租约到期 <Required /><input type="date" value={form.expiry} min={form.date || undefined} onChange={(event) => update("expiry", event.target.value)} /><small className="zuji-field-help">用于判断可转租时间，不会公开合同原件</small></label><label>补充说明 <span className="zuji-optional">选填</span><textarea value={form.note} onChange={(event) => update("note", event.target.value)} placeholder="可以介绍房间朝向、家具、室友、通勤和看房时间……" rows={5} /></label></PublishSection><PublishSection number="02" title="本套房源的租赁证明" hint="实名认证属于账号；合同属于这套房。每发布一套新房都要重新匹配合同。"><label className={`zuji-proof-upload ${contractFile ? "ready" : ""}`}><input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(event) => { setContractFile(event.target.files?.[0]?.name || ""); setError(""); }} /><span>{contractFile ? "✓" : "↑"}</span><p><b>{contractFile || "上传租赁合同 *"}</b><small>支持 PDF、JPG、PNG，仅用于审核本套房源</small></p><em>{contractFile ? "重新选择" : "选择文件"}</em></label><label className="zuji-proof-upload optional"><input type="file" accept=".pdf,.jpg,.jpeg,.png" multiple onChange={choosePaymentFiles} /><span>＋</span><p><b>补充租金支付记录</b><small>选填，近 3–6 个月记录可提升可信度</small></p><em>{paymentFiles.length ? `已选 ${paymentFiles.length} 份` : "可选"}</em></label>{paymentFiles.length > 0 && <div className="zuji-file-list">{paymentFiles.map((file) => <span key={file}>{file}<button type="button" onClick={() => setPaymentFiles((current) => current.filter((item) => item !== file))}>×</button></span>)}</div>}</PublishSection><PublishSection number="03" title="房源实拍图片" hint="最多 8 张。建议依次上传卧室、客厅、厨房、卫生间和窗外环境。"><div className="zuji-image-grid"><label className="zuji-image-add"><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={chooseImages} /><b>＋</b><span>添加图片</span><small>{images.length}/8</small></label>{images.map((image, index) => <div className="zuji-image-item" key={image.url}><img src={image.url} alt={image.name} />{index === 0 && <b>封面</b>}<button type="button" aria-label={`移除 ${image.name}`} onClick={() => removeImage(image)}>×</button></div>)}</div></PublishSection>{error && <div className="zuji-publish-error"><b>请检查发布信息</b><span>{error}</span></div>}<div className="zuji-publish-actions"><button className="preview" type="button" onClick={() => setPreview(true)} disabled={!form.title.trim()}>预览房源</button><p>{verified ? "✓ 账号身份已认证" : "提交时检查实名认证状态"}</p><button className="submit" disabled={submitting} onClick={submit}>{submitting ? "正在提交…" : "提交审核"} <span>→</span></button></div></div><aside className="zuji-publish-aside"><div className="zuji-check-card"><span>发布检查</span><CheckLine done={basicsReady} title="房源信息" description={basicsReady ? "必填内容已完整" : "还有必填内容未完成"} /><CheckLine done={Boolean(contractFile)} title="本套房源合同" description={contractFile ? "已选择审核材料" : "提交前必须上传"} /><CheckLine done={images.length > 0} title="实拍图片" description={images.length ? `已添加 ${images.length} 张` : "选填，建议至少 3 张"} /><CheckLine done={verified} title="实名认证" description={verified ? "账号已完成，可复用" : "提交时再完成"} /></div><div className="zuji-publish-tip"><b>为什么分开验证？</b><p>实名认证确认“你是谁”；合同确认“你与这套房的关系”。换房后需要上传新合同，但不用重新实名。</p></div></aside></div></div>{preview && <div className="zuji-preview-backdrop" onClick={() => setPreview(false)}><div className="zuji-preview" onClick={(event) => event.stopPropagation()}><button className="close" onClick={() => setPreview(false)}>×</button><span>租客看到的房源卡片</span><div className="zuji-preview-photo">{images[0] ? <img src={images[0].url} alt="房源封面预览" /> : <p>添加房源图片后会显示在这里</p>}<b>合同待审核</b></div><small>{form.district || "区域"} · {form.community || "小区"}</small><h2>{form.title || "你的房源标题"}</h2><p>{form.date ? `${form.date} 起可入住` : "入住时间待填写"}</p><strong>¥{rentValue ? rentValue.toLocaleString() : "—"}<em>/月</em></strong><button onClick={() => setPreview(false)}>继续编辑</button></div></div>}</section>;
+}
+
+function PublishSection({ number, title, hint, children }: { number: string; title: string; hint: string; children: React.ReactNode }) {
+  return <section className="zuji-publish-section"><header><span>{number}</span><div><h2>{title}</h2><p>{hint}</p></div></header>{children}</section>;
+}
+
+function Required() { return <i className="zuji-required">*</i>; }
+
+function CheckLine({ done, title, description }: { done: boolean; title: string; description: string }) {
+  return <div className="zuji-check-line"><span className={done ? "done" : ""}>{done ? "✓" : "·"}</span><p><b>{title}</b><small>{description}</small></p></div>;
 }

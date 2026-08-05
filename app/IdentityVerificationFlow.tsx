@@ -3,20 +3,11 @@
 import { useState } from "react";
 import type { ChangeEvent } from "react";
 
-const copy = {
-  eyebrow: "\u53d1\u5e03\u524d\u7684\u8eab\u4efd\u9a8c\u8bc1",
-  title: "\u5148\u8bc1\u660e\u4f60\u662f\u8c01",
-  description: "\u5b9e\u540d\u8ba4\u8bc1\u53ea\u9700\u5b8c\u6210\u4e00\u6b21\uff0c\u4e4b\u540e\u53ef\u7528\u4e8e\u53d1\u5e03\u591a\u5957\u623f\u6e90\u3002",
-  identity: "\u8eab\u4efd\u8bc1\u4ef6",
-  face: "\u672c\u4eba\u6d3b\u4f53\u9a8c\u8bc1",
-  continue: "\u5b8c\u6210\u8eab\u4efd\u8ba4\u8bc1",
-  privacy: "\u8eab\u4efd\u6750\u6599\u4ec5\u7528\u4e8e\u9a8c\u8bc1\uff0c\u4e0d\u4f1a\u516c\u5f00\u5c55\u793a\u3002",
-};
-
 export default function IdentityVerificationFlow({ onClose, onComplete }: { onClose: () => void; onComplete: () => void }) {
   const [identityFile, setIdentityFile] = useState("");
   const [faceFile, setFaceFile] = useState("");
   const choose = (setter: (value: string) => void) => (event: ChangeEvent<HTMLInputElement>) => setter(event.target.files?.[0]?.name || "");
   const ready = Boolean(identityFile && faceFile);
-  return <div className="modal-backdrop" onClick={onClose}><div className="modal publish-flow" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={onClose}>×</button><p className="eyebrow">{copy.eyebrow}</p><div className="flow-progress"><span className="done" /></div><div className="flow-icon">◎</div><h2>{copy.title}</h2><p className="modal-copy">{copy.description}</p><div className="verification-upload"><label className={`upload-tile ${identityFile ? "ready" : ""}`}><input type="file" accept="image/*" onChange={choose(setIdentityFile)} /><span>{identityFile ? "✓" : "＋"}</span><b>{identityFile || copy.identity}</b><small>JPG、PNG</small></label><label className={`upload-tile ${faceFile ? "ready" : ""}`}><input type="file" accept="image/*" capture="user" onChange={choose(setFaceFile)} /><span>{faceFile ? "✓" : "＋"}</span><b>{faceFile || copy.face}</b><small>JPG、PNG</small></label></div><div className="flow-check"><span>✓</span><div><b>{copy.privacy}</b></div></div><button className="dark-button full" disabled={!ready} onClick={onComplete}>{copy.continue} <span>→</span></button></div></div>;
+
+  return <div className="zuji-identity-backdrop" onClick={onClose}><section className="zuji-identity-dialog" role="dialog" aria-modal="true" aria-labelledby="identity-title" onClick={(event) => event.stopPropagation()}><button className="close" onClick={onClose} aria-label="关闭实名认证">×</button><header><span>发布前最后一步</span><h2 id="identity-title">确认发布者是你本人</h2><p>实名认证只需完成一次，以后发布其他房源不需要重复认证。每套房的合同仍会单独审核。</p></header><div className="zuji-identity-reason"><b>为什么现在才验证？</b><p>你可以先完整填写并预览房源。只有准备提交时，我们才会要求身份材料。</p></div><div className="zuji-identity-files"><label className={identityFile ? "ready" : ""}><input type="file" accept="image/jpeg,image/png" onChange={choose(setIdentityFile)} /><span>{identityFile ? "✓" : "01"}</span><p><b>{identityFile || "上传身份证件"}</b><small>请上传清晰、完整的证件照片</small></p><em>{identityFile ? "重新选择" : "选择图片"}</em></label><label className={faceFile ? "ready" : ""}><input type="file" accept="image/jpeg,image/png" capture="user" onChange={choose(setFaceFile)} /><span>{faceFile ? "✓" : "02"}</span><p><b>{faceFile || "完成本人照片验证"}</b><small>用于确认提交人与证件持有人一致</small></p><em>{faceFile ? "重新选择" : "开始拍摄"}</em></label></div><div className="zuji-identity-privacy"><span>⌁</span><p><b>材料不会展示在房源中</b><small>租客只能看到“身份已验证”的结果。</small></p></div><button className="submit" disabled={!ready} onClick={onComplete}>完成认证并提交房源 <span>→</span></button><button className="later" onClick={onClose}>暂不提交，返回继续编辑</button></section></div>;
 }
