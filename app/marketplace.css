@@ -525,3 +525,9 @@
 
 @media(max-width:760px){.zuji-orange-theme .zuji-header-inner{grid-template-columns:auto 1fr auto;gap:8px}.zuji-orange-theme .zuji-role-switch{display:flex;justify-self:center;padding:3px}.zuji-orange-theme .zuji-role-switch a{padding:7px 10px;font-size:10px}.zuji-orange-theme .zuji-header-links{gap:0}.zuji-orange-theme .zuji-header-links>a{display:none}.zuji-orange-theme .zuji-header-links button{padding:8px 9px;max-width:58px}.zuji-mobile-publish{display:none!important}}
 @media(prefers-reduced-motion:reduce){::view-transition-old(page-content),::view-transition-new(page-content),::view-transition-old(site-header),::view-transition-new(site-header),::view-transition-old(role-switcher),::view-transition-new(role-switcher){animation:none}.zuji-role-switch a{transition:none}}
+
+/* Refined hero typography */
+.zuji-new-hero h1{text-wrap:balance}.zuji-new-hero h1 em{display:inline-block}
+@media(max-width:980px) and (min-width:761px){.zuji-new-hero h1{font-size:46px;line-height:1.12;letter-spacing:-.05em}}
+@media(max-width:760px){.zuji-new-hero-copy{padding:38px 22px 30px}.zuji-new-kicker{font-size:10px;letter-spacing:.12em}.zuji-new-hero h1{margin:16px 0 18px;font-size:clamp(34px,9.8vw,40px);font-weight:620;line-height:1.16;letter-spacing:-.045em}.zuji-new-hero h1 em{white-space:nowrap}.zuji-new-hero-copy>p{margin-bottom:23px;font-size:14px;line-height:1.75;letter-spacing:.01em}}
+@media(max-width:350px){.zuji-new-hero h1{font-size:32px;letter-spacing:-.05em}.zuji-new-hero-copy{padding-inline:19px}}
