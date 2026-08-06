@@ -15,7 +15,7 @@ export default function ListingDetailClient({ id }: { id: string }) {
   const [activeImage, setActiveImage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [userName, setUserName] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null | undefined>(undefined);
   const [action, setAction] = useState<Action>(null);
   const [message, setMessage] = useState("");
   const [date, setDate] = useState("");
@@ -69,7 +69,7 @@ export default function ListingDetailClient({ id }: { id: string }) {
     } finally { setSubmitting(false); }
   };
 
-  const login = () => { window.location.href = `/signin-with-chatgpt?return_to=${encodeURIComponent(`/listings/${id}`)}`; };
+  const login = () => { window.location.href = `/login?return_to=${encodeURIComponent(`/listings/${id}`)}`; };
   const today = new Date().toISOString().slice(0, 10);
 
   if (loading) return <main className="zuji-page zuji-orange-theme"><SiteHeader active="find" /><div className="zuji-container zuji-detail-loading">正在加载房源…</div></main>;

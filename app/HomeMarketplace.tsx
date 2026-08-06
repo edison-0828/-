@@ -13,7 +13,7 @@ export default function HomeMarketplace() {
   const [query, setQuery] = useState("");
   const [district, setDistrict] = useState("全部");
   const [loading, setLoading] = useState(true);
-  const [userName, setUserName] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
     fetch("/api/session")

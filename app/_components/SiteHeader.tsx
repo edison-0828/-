@@ -7,7 +7,8 @@ type Props = { active: "find" | "publish"; userName?: string | null };
 export default function SiteHeader({ active, userName }: Props) {
   const login = () => {
     if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
-      window.location.href = "/signin-with-chatgpt?return_to=/";
+      const returnTo = `${window.location.pathname}${window.location.search}`;
+      window.location.href = `/login?return_to=${encodeURIComponent(returnTo)}`;
     }
   };
 
@@ -19,7 +20,7 @@ export default function SiteHeader({ active, userName }: Props) {
           <Link className={active === "find" ? "active" : ""} href="/">我要找房</Link>
           <Link className={active === "publish" ? "active" : ""} href="/publish">我要转租</Link>
         </nav>
-        <div className="zuji-header-links"><Link href="/#trust">安心保障</Link><Link href="/#listings">浏览房源</Link><button onClick={login}>{userName || "登录"}</button></div>
+        <div className="zuji-header-links"><Link href="/#trust">安心保障</Link><Link href="/#listings">浏览房源</Link><button disabled={userName === undefined} onClick={login}>{userName === undefined ? "识别中…" : userName || "登录"}</button></div>
       </div>
     </header>
   );
