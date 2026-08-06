@@ -8,15 +8,8 @@ import type { ApiListing, ListingView } from "./_lib/listings";
 
 const districts = ["全部", "南山", "福田", "宝安", "龙华"];
 
-const demoListings: ApiListing[] = [
-  { id: "demo-1", publisherId: "demo", title: "后海地铁旁安静次卧，采光很好", district: "南山", community: "蔚蓝海岸", monthlyRentCents: 360000, availableFrom: "8月18日" },
-  { id: "demo-2", publisherId: "demo", title: "车公庙一居室，通勤友好可短租", district: "福田", community: "泰然公寓", monthlyRentCents: 480000, availableFrom: "随时入住" },
-  { id: "demo-3", publisherId: "demo", title: "宝体南向主卧，室友作息规律", district: "宝安", community: "幸福海岸", monthlyRentCents: 290000, availableFrom: "9月1日" },
-  { id: "demo-4", publisherId: "demo", title: "红山站精装两居，整租带阳台", district: "龙华", community: "金亨利都荟", monthlyRentCents: 620000, availableFrom: "8月25日" },
-];
-
 export default function HomeMarketplace() {
-  const [listings, setListings] = useState<ListingView[]>(demoListings.map(toListingView));
+  const [listings, setListings] = useState<ListingView[]>([]);
   const [query, setQuery] = useState("");
   const [district, setDistrict] = useState("全部");
   const [loading, setLoading] = useState(true);
@@ -30,7 +23,7 @@ export default function HomeMarketplace() {
     fetch("/api/listings")
       .then(async (response) => {
         const payload = await response.json() as { listings?: ApiListing[] };
-        if (response.ok && payload.listings?.length) setListings(payload.listings.map(toListingView));
+        if (response.ok) setListings((payload.listings || []).map(toListingView));
       })
       .catch(() => null)
       .finally(() => setLoading(false));
@@ -89,7 +82,7 @@ export default function HomeMarketplace() {
 
           <div className="zuji-new-feature">
             <div className="zuji-feature-photo">
-              <img src={feature?.image} alt="明亮舒适的真实出租房源" />
+              <img src={feature?.image || "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1400&q=82"} alt="明亮舒适的真实出租房源" />
               <span className="zuji-photo-count">精选房源 · 01</span>
               <div className="zuji-feature-info">
                 <small>{feature?.district || "南山"} · {feature?.community || "后海"}</small>
@@ -144,7 +137,7 @@ function ListingCard({ listing, index }: { listing: ListingView; index: number }
     <a className={`zuji-new-card ${index === 0 ? "featured" : ""}`} href={`/listings/${listing.id}`}>
       <div className="zuji-new-card-photo">
         <img src={listing.image} alt={listing.title} />
-        <span>✓ 租约已核验</span>
+        <span>{listing.status === "pending_review" ? "⌛ 我的房源 · 审核中" : "✓ 租约已核验"}</span>
         <button type="button" aria-label="收藏房源" onClick={(event) => { event.preventDefault(); event.currentTarget.classList.toggle("saved"); }}>♡</button>
       </div>
       <div className="zuji-new-card-body">

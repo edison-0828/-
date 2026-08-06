@@ -8,6 +8,8 @@ export type ApiListing = {
   availableFrom: string;
   leaseEndsAt?: string;
   description?: string;
+  status?: "pending_review" | "published" | "rejected";
+  imageUrls?: string[];
 };
 
 export type ListingView = ApiListing & {
@@ -25,10 +27,12 @@ export const houseImages = [
 
 export function toListingView(item: ApiListing, index = 0): ListingView {
   const offset = Math.abs(index) % houseImages.length;
+  const uploadedImages = item.imageUrls?.filter(Boolean) || [];
+  const images = uploadedImages.length ? uploadedImages : houseImages.map((_, imageIndex) => houseImages[(offset + imageIndex) % houseImages.length]);
   return {
     ...item,
     price: item.monthlyRentCents / 100,
-    image: houseImages[offset],
-    images: houseImages.map((_, imageIndex) => houseImages[(offset + imageIndex) % houseImages.length]),
+    image: images[0],
+    images,
   };
 }
