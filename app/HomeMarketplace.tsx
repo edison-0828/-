@@ -74,6 +74,12 @@ export default function HomeMarketplace() {
               {districts.slice(1).map((item) => <button key={item} onClick={() => selectDistrict(item)}>{item}</button>)}
             </div>
 
+            <Link className="zuji-hero-publish-entry" href="/publish">
+              <span className="zuji-hero-publish-icon">↗</span>
+              <span><small>我是租客，有房要转租</small><b>进入房源发布工作台</b></span>
+              <em>去发布 →</em>
+            </Link>
+
             <div className="zuji-new-stats" aria-label="平台保障">
               <div><b>双重</b><span>身份与租约核验</span></div>
               <div><b>站内</b><span>沟通更安心</span></div>

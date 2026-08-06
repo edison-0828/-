@@ -19,7 +19,7 @@ export default function SiteHeader({ active, userName }: Props) {
           <Link className={active === "find" ? "active" : ""} href="/">我要找房</Link>
           <Link className={active === "publish" ? "active" : ""} href="/publish">我要转租</Link>
         </nav>
-        <div className="zuji-header-links"><Link href="/#trust">安心保障</Link><Link href="/#listings">浏览房源</Link><button onClick={login}>{userName || "登录"}</button></div>
+        <div className="zuji-header-links"><Link href="/#trust">安心保障</Link><Link href="/#listings">浏览房源</Link><Link className="zuji-mobile-publish" href="/publish">我要转租</Link><button onClick={login}>{userName || "登录"}</button></div>
       </div>
     </header>
   );
