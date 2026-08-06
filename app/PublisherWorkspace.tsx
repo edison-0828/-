@@ -3,13 +3,13 @@
 import { useMemo, useState } from "react";
 import type { ChangeEvent, ReactNode } from "react";
 
-type Props = { authenticated: boolean; onBack: () => void; onRequireLogin: () => void };
+type Props = { authenticated: boolean; onBack: () => void };
 type ImageItem = { file: File; name: string; url: string };
 type FormState = { title: string; district: string; community: string; rent: string; date: string; expiry: string; note: string };
 
 const emptyForm: FormState = { title: "", district: "", community: "", rent: "", date: "", expiry: "", note: "" };
 
-export default function PublisherWorkspace({ authenticated, onBack, onRequireLogin }: Props) {
+export default function PublisherWorkspace({ authenticated, onBack }: Props) {
   const [form, setForm] = useState(emptyForm);
   const [images, setImages] = useState<ImageItem[]>([]);
   const [contractFile, setContractFile] = useState<File | null>(null);
@@ -66,7 +66,7 @@ export default function PublisherWorkspace({ authenticated, onBack, onRequireLog
   const submit = async () => {
     const validationError = validate();
     if (validationError) return setError(validationError);
-    if (!authenticated) return onRequireLogin();
+    if (!authenticated) return setError("当前站点账号状态未识别，请刷新页面后重试。");
     if (!contractFile) return;
 
     setError("");

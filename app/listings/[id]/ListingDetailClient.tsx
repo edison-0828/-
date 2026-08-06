@@ -69,7 +69,7 @@ export default function ListingDetailClient({ id }: { id: string }) {
     } finally { setSubmitting(false); }
   };
 
-  const login = () => { window.location.href = `/login?return_to=${encodeURIComponent(`/listings/${id}`)}`; };
+  const login = () => { window.location.reload(); };
   const today = new Date().toISOString().slice(0, 10);
 
   if (loading) return <main className="zuji-page zuji-orange-theme"><SiteHeader active="find" /><div className="zuji-container zuji-detail-loading">正在加载房源…</div></main>;
