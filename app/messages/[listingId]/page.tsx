@@ -11,5 +11,5 @@ export default async function MessagePage({ params, searchParams }: { params: Pr
   const returnTo = `/messages/${encodeURIComponent(listingId)}${participantId ? `?with=${encodeURIComponent(participantId)}` : ""}`;
   if (!user) redirect(`/login?return_to=${encodeURIComponent(returnTo)}`);
 
-  return <MessageThreadClient listingId={listingId} participantId={participantId} userName={user.displayName} authMethod={user.authMethod} />;
+  return <MessageThreadClient listingId={listingId} participantId={participantId} />;
 }

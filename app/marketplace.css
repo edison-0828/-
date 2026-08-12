@@ -628,6 +628,31 @@
   .zuji-find-filterbar{background:#f5f5f5f2}
 }
 
+/* Persistent navigation shell and quick route feedback */
+.zuji-navigation-theme{position:fixed;inset:0 0 auto;z-index:55;height:76px;background:#fff}
+.zuji-navigation-theme>.zuji-header{position:relative;top:auto;height:76px}
+.zuji-route-content{overflow-x:clip}
+.zuji-route-content.has-site-header{padding-top:76px}
+.zuji-route-content.has-site-header .zuji-page>.zuji-header{display:none}
+.zuji-route-content.route-forward>:is(.zuji-page,.zuji-login-page){animation:zuji-ios-route-forward .3s cubic-bezier(.22,.75,.18,1) both}
+.zuji-route-content.route-back>:is(.zuji-page,.zuji-login-page){animation:zuji-ios-route-back .3s cubic-bezier(.22,.75,.18,1) both}
+.zuji-route-content.route-fade>:is(.zuji-page,.zuji-login-page){animation:zuji-ios-route-fade .24s cubic-bezier(.22,.75,.18,1) both}
+.zuji-route-progress{position:fixed;top:0;right:0;left:0;z-index:90;height:2px;overflow:hidden;pointer-events:none;opacity:0;transition:opacity .12s ease}
+.zuji-route-progress>i{display:block;width:100%;height:100%;border-radius:0 999px 999px 0;background:#f0b90b;box-shadow:0 0 10px #f0b90b80;transform:scaleX(0);transform-origin:left}
+.zuji-route-progress.loading{opacity:1}.zuji-route-progress.loading>i{animation:zuji-route-progress 1.05s cubic-bezier(.4,0,.2,1) infinite}
+.zuji-route-progress.complete{opacity:1}.zuji-route-progress.complete>i{transform:scaleX(1);transition:transform .14s ease-out}
+.zuji-mobile-nav>a{transition:background-color .12s ease,color .12s ease,transform .12s ease}.zuji-mobile-nav>a.active{transform:translateY(-1px)}
+.zuji-route-loading{padding-top:34px}.zuji-route-loading>section{display:grid;gap:18px}.zuji-route-loading-pill,.zuji-route-loading-title>i,.zuji-route-loading-hero,.zuji-route-loading-cards>i{display:block;background:linear-gradient(100deg,#e8eaec 30%,#f7f8f9 50%,#e8eaec 70%);background-size:300% 100%;animation:zuji-shimmer 1.25s infinite}
+.zuji-route-loading-pill{width:82px;height:22px;border-radius:999px}.zuji-route-loading-title{display:grid;gap:9px;width:min(480px,75%)}.zuji-route-loading-title>i{height:24px;border-radius:7px}.zuji-route-loading-title>i:last-child{width:68%}.zuji-route-loading-hero{height:260px;border-radius:20px}.zuji-route-loading-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.zuji-route-loading-cards>i{height:130px;border-radius:14px}
+@keyframes zuji-ios-route-forward{from{opacity:.68;transform:translate3d(22px,0,0) scale(.994)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes zuji-ios-route-back{from{opacity:.68;transform:translate3d(-18px,0,0) scale(.994)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes zuji-ios-route-fade{from{opacity:.55;transform:scale(.994)}to{opacity:1;transform:scale(1)}}
+@keyframes zuji-route-progress{0%{transform:translateX(-100%) scaleX(.2)}55%{transform:translateX(-18%) scaleX(.58)}100%{transform:translateX(88%) scaleX(.25)}}
+@keyframes zuji-page-out{to{opacity:0}}@keyframes zuji-page-in{from{opacity:0}}
+::view-transition-old(page-content){animation-duration:.1s}::view-transition-new(page-content){animation-duration:.16s}
+@media(max-width:720px){.zuji-navigation-theme,.zuji-navigation-theme>.zuji-header{height:68px}.zuji-route-content.has-site-header{padding-top:68px}.zuji-route-loading{padding-top:22px}.zuji-route-loading-hero{height:210px}.zuji-route-loading-cards{grid-template-columns:1fr}.zuji-route-loading-cards>i{height:92px}}
+@media(prefers-reduced-motion:reduce){.zuji-route-content.route-forward>:is(.zuji-page,.zuji-login-page),.zuji-route-content.route-back>:is(.zuji-page,.zuji-login-page),.zuji-route-content.route-fade>:is(.zuji-page,.zuji-login-page),.zuji-route-progress>i,.zuji-route-loading-pill,.zuji-route-loading-title>i,.zuji-route-loading-hero,.zuji-route-loading-cards>i{animation:none}.zuji-mobile-nav>a{transition:none}}
+
 /* Find hero — white surface with black/yellow accents */
 .zuji-find-hero{
   border-bottom:1px solid #e6e8ea;
@@ -957,3 +982,112 @@
   .zuji-mobile-nav>a.active>i{border-radius:8px;background:#f0b90b;color:#181a20;font-weight:850}
   .zuji-mobile-nav>a>i>em{position:absolute;top:-5px;right:-8px;display:grid;place-items:center;min-width:16px;height:16px;padding:0 4px;border:2px solid #fff;border-radius:999px;background:#e5484d;color:#fff;font-size:7px;font-style:normal;font-weight:850}
 }
+
+/* iOS-like navigation response: short deceleration, soft spring and a stable glass bar. */
+.zuji-mobile-nav{
+  background:rgba(255,255,255,.88);
+  -webkit-backdrop-filter:saturate(180%) blur(24px);
+  backdrop-filter:saturate(180%) blur(24px);
+}
+.zuji-mobile-nav>a{
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  transition:color .18s ease,background-color .18s ease,transform .22s cubic-bezier(.2,.85,.32,1.25);
+}
+.zuji-mobile-nav>a>i{
+  transition:color .18s ease,background-color .18s ease,box-shadow .22s ease,transform .26s cubic-bezier(.2,.85,.32,1.25);
+}
+.zuji-mobile-nav>a.active{transform:translateY(-2px)}
+.zuji-mobile-nav>a.active>i{box-shadow:0 5px 14px #f0b90b47;transform:translateY(-1px) scale(1.05)}
+.zuji-mobile-nav>a:active{background:#f5f6f7;transform:translateY(0) scale(.95)}
+.zuji-mobile-nav>a:active>i{box-shadow:0 2px 7px #f0b90b30;transform:translateY(0) scale(.9)}
+html.zuji-route-changing .zuji-route-content{cursor:progress}
+
+@media(prefers-reduced-motion:reduce){
+  .zuji-mobile-nav>a,.zuji-mobile-nav>a>i{transition:none}
+}
+
+/* Keep the end of the find page focused on listings, especially on phones. */
+.zuji-find-list-end{display:flex;align-items:center;gap:14px;width:min(460px,100%);margin:28px auto 0;color:#8d949d;text-align:center}
+.zuji-find-list-end>span{flex:1;height:1px;background:#dedfe1}
+.zuji-find-list-end>p{flex:none;margin:0}
+.zuji-find-list-end b,.zuji-find-list-end small{display:block}
+.zuji-find-list-end b{color:#666e78;font-size:9px}
+.zuji-find-list-end small{margin-top:4px;font-size:8px}
+
+@media(min-width:761px){
+  .zuji-find-publish{margin-top:36px;margin-bottom:36px;padding:27px 32px}
+  .zuji-find-publish h2{font-size:22px}
+  .zuji-find-page .zuji-new-footer>div{min-height:72px}
+}
+
+@media(max-width:760px){
+  .zuji-find-page{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+  .zuji-find-catalog{padding-bottom:22px}
+  .zuji-find-list-end{gap:10px;margin-top:22px}
+  .zuji-find-publish{display:none}
+  .zuji-find-page .zuji-new-footer{border-color:#2b2f36}
+  .zuji-find-page .zuji-new-footer>div{flex-wrap:nowrap;gap:8px;min-height:50px;padding:0}
+  .zuji-find-page .zuji-new-footer p{display:none}
+  .zuji-find-page .zuji-new-footer small{margin-left:auto}
+}
+
+/* Nationwide city selection and privacy-conscious location matching. */
+.zuji-find-location>button{display:flex;align-items:center;gap:5px;padding:0;border:0;background:transparent;color:inherit;cursor:pointer}
+.zuji-find-location>button>span{display:block}
+.zuji-find-location>button>i{color:#8c939c;font-size:13px;font-style:normal;transition:transform .18s ease}
+.zuji-find-location>button:hover>i{transform:translateY(2px)}
+.zuji-city-backdrop{position:fixed;inset:0;z-index:110;display:grid;place-items:center;padding:24px;background:#181a2070;backdrop-filter:blur(8px)}
+.zuji-city-picker{width:min(720px,100%);max-height:min(780px,calc(100dvh - 48px));overflow-y:auto;padding:28px;border:1px solid #dfe2e5;border-radius:21px;background:#fff;color:#181a20;box-shadow:0 28px 90px #181a2042}
+.zuji-city-picker>header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding-bottom:20px;border-bottom:1px solid #eceef0}
+.zuji-city-picker>header span{color:#967300;font-size:8px;font-weight:850;letter-spacing:.13em}
+.zuji-city-picker>header h2{margin:8px 0 7px;font-size:27px;letter-spacing:-.045em}
+.zuji-city-picker>header p{margin:0;color:#858d98;font-size:9px}
+.zuji-city-picker>header>button{display:grid;flex:none;place-items:center;width:34px;height:34px;border-radius:50%;background:#f1f2f3;color:#6f7781;font-size:20px;cursor:pointer}
+.zuji-city-locate{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;margin:17px 0;padding:13px 14px;border:1px solid #ead06c;border-radius:11px;background:#fff9df;color:#181a20;text-align:left;cursor:pointer}
+.zuji-city-locate:disabled{cursor:wait;opacity:.65}
+.zuji-city-locate>i{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:#f0b90b;font-size:17px;font-style:normal}
+.zuji-city-locate b,.zuji-city-locate small{display:block}.zuji-city-locate b{font-size:10px}.zuji-city-locate small{margin-top:4px;color:#8b805d;font-size:8px}.zuji-city-locate em{color:#806100;font-size:14px;font-style:normal}
+.zuji-city-picker>form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-bottom:22px}.zuji-city-picker>form input{min-width:0;padding:12px 13px;border:1px solid #dce0e3;border-radius:9px;outline:0;background:#fafafa;color:#181a20;font:inherit;font-size:10px}.zuji-city-picker>form input:focus{border-color:#d2ac18;box-shadow:0 0 0 3px #f0b90b26}.zuji-city-picker>form button{padding:0 17px;border-radius:9px;background:#181a20;color:#f0b90b;font-size:9px;font-weight:800}.zuji-city-picker>form button:disabled{opacity:.4}
+.zuji-city-popular>span{display:block;margin-bottom:10px;color:#8b929c;font-size:8px;font-weight:750}.zuji-city-popular>div{display:flex;flex-wrap:wrap;gap:7px}.zuji-city-popular button,.zuji-city-groups button{padding:8px 11px;border:1px solid #e2e5e7;border-radius:8px;background:#fff;color:#555e69;font-size:9px;cursor:pointer}.zuji-city-popular button:hover,.zuji-city-groups button:hover,.zuji-city-popular button.active,.zuji-city-groups button.active{border-color:#d8b31d;background:#fff7d6;color:#5f4900}
+.zuji-city-groups{display:grid;gap:13px;margin-top:22px;padding-top:20px;border-top:1px solid #eceef0}.zuji-city-groups>div{display:grid;grid-template-columns:46px minmax(0,1fr);gap:11px;align-items:start}.zuji-city-groups>div>b{padding-top:8px;color:#858d98;font-size:8px}.zuji-city-groups p{display:flex;flex-wrap:wrap;gap:6px;margin:0}.zuji-city-groups button{padding:7px 9px}
+.zuji-market-deal-empty,.zuji-market-area-empty{display:grid;place-items:center;gap:7px;min-height:150px;padding:25px;color:#969da6;text-align:center}.zuji-market-deal-empty b,.zuji-market-area-empty b{color:#555e69;font-size:12px}.zuji-market-deal-empty span,.zuji-market-area-empty a{font-size:8px}.zuji-market-area-empty{grid-column:1/-1;border:1px dashed #d9dde0;border-radius:14px;background:#fff}.zuji-market-area-empty a{color:#7c6000;font-weight:800}
+
+@media(max-width:760px){
+  .zuji-find-location{align-items:center}.zuji-find-location>b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .zuji-city-backdrop{align-items:end;padding:0;background:#181a2078}
+  .zuji-city-picker{width:100%;max-height:88dvh;padding:22px 17px calc(24px + env(safe-area-inset-bottom));border:0;border-radius:20px 20px 0 0}
+  .zuji-city-picker>header h2{font-size:23px}.zuji-city-picker>header p{line-height:1.6}
+  .zuji-city-locate{margin:14px 0}
+  .zuji-city-popular button,.zuji-city-groups button{min-height:36px}
+  .zuji-city-groups>div{grid-template-columns:39px minmax(0,1fr)}
+}
+
+@media(prefers-reduced-motion:reduce){.zuji-find-location>button>i{transition:none}}
+
+/* Find filters: advantages first, then explicit area, price, availability and sorting. */
+.zuji-find-filterbar{display:grid;gap:11px;padding:11px 0 13px}
+.zuji-find-advantages{display:flex;align-items:center;gap:14px;min-width:0}
+.zuji-find-advantages>span{flex:none;color:#858d97;font-size:8px;font-weight:800;letter-spacing:.08em}
+.zuji-find-advantages>div{display:flex;flex-wrap:wrap;gap:7px}
+.zuji-find-advantages button{min-height:34px;padding:0 13px;border:1px solid #e0e3e6;border-radius:9px;background:#fff;color:#68717c;font-size:9px;font-weight:700;cursor:pointer;transition:border-color .16s ease,background-color .16s ease,color .16s ease,transform .16s ease}
+.zuji-find-advantages button:hover{border-color:#d8b31d;transform:translateY(-1px)}
+.zuji-find-advantages button.active{border-color:#e1b500;background:#f0b90b;color:#181a20;box-shadow:0 4px 12px #f0b90b24}
+.zuji-find-filter-selects{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:100%}
+.zuji-find-filter-selects>label{display:grid;gap:5px;min-width:0}
+.zuji-find-filter-selects>label>span{color:#9299a2;font-size:8px;font-weight:750}
+.zuji-find-filter-selects select{width:100%;min-width:0;min-height:40px;padding:9px 30px 9px 11px;border-color:#dfe2e5;background-color:#fff;color:#555e69}
+.zuji-find-filter-selects select:disabled{background:#f0f1f2;color:#a0a6ae;cursor:not-allowed}
+
+@media(max-width:760px){
+  .zuji-find-filterbar{position:relative;top:auto;display:grid;margin-inline:-14px;padding:10px 14px 12px}
+  .zuji-find-advantages{display:block}
+  .zuji-find-advantages>span{display:block;margin-bottom:7px}
+  .zuji-find-advantages>div{flex-wrap:nowrap;overflow-x:auto;margin-inline:-14px;padding:0 14px 3px;scrollbar-width:none}
+  .zuji-find-advantages>div::-webkit-scrollbar{display:none}
+  .zuji-find-advantages button{flex:none;min-height:33px;padding-inline:12px}
+  .zuji-find-filter-selects{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .zuji-find-filter-selects select{min-height:39px;font-size:9px}
+}
+
+@media(prefers-reduced-motion:reduce){.zuji-find-advantages button{transition:none}}

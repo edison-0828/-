@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import SiteHeader from "../_components/SiteHeader";
 import Link from "../_components/SafeLink";
 import { getChatGPTUser } from "../chatgpt-auth";
 import MessageInboxClient from "./MessageInboxClient";
@@ -11,7 +10,6 @@ export default async function MessagesPage() {
   if (!user) redirect("/login?return_to=/messages");
 
   return <main className="zuji-page zuji-black-yellow-theme">
-    <SiteHeader active="messages" userName={user.displayName} authMethod={user.authMethod} />
     <section className="zuji-inbox-page zuji-container">
       <div className="zuji-page-context">
         <Link href="/"><i aria-hidden="true">←</i><b>返回找房</b></Link>

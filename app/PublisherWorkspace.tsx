@@ -2,14 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent, ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { announceRouteStart } from "./_components/SafeLink";
+import { POPULAR_CITIES, normalizeChinaCity } from "./_lib/china-cities";
 
 type Props = { authenticated: boolean; onBack: () => void };
 type ImageItem = { file: File; name: string; url: string };
-type FormState = { title: string; district: string; community: string; rent: string; date: string; expiry: string; note: string };
+type FormState = { title: string; city: string; district: string; community: string; rent: string; date: string; expiry: string; note: string };
 
-const emptyForm: FormState = { title: "", district: "", community: "", rent: "", date: "", expiry: "", note: "" };
+const emptyForm: FormState = { title: "", city: "", district: "", community: "", rent: "", date: "", expiry: "", note: "" };
 
 export default function PublisherWorkspace({ authenticated, onBack }: Props) {
+  const router = useRouter();
   const [form, setForm] = useState(emptyForm);
   const [images, setImages] = useState<ImageItem[]>([]);
   const [contractFile, setContractFile] = useState<File | null>(null);
@@ -21,12 +25,15 @@ export default function PublisherWorkspace({ authenticated, onBack }: Props) {
 
   useEffect(() => {
     const saved = window.sessionStorage.getItem("zuji-publish-login-draft");
-    if (!saved) return;
+    const preferredCity = window.localStorage.getItem("zuji-preferred-city");
     let draft: Partial<FormState> | null = null;
-    try { draft = JSON.parse(saved) as Partial<FormState>; } catch { /* Ignore an invalid local draft. */ }
-    window.sessionStorage.removeItem("zuji-publish-login-draft");
-    if (!draft) return;
-    const restoreTimer = window.setTimeout(() => setForm((current) => ({ ...current, ...draft })), 0);
+    if (saved) {
+      try { draft = JSON.parse(saved) as Partial<FormState>; } catch { /* Ignore an invalid local draft. */ }
+      window.sessionStorage.removeItem("zuji-publish-login-draft");
+    }
+    const city = preferredCity && preferredCity !== "全国" ? normalizeChinaCity(preferredCity) : "";
+    if (!draft && !city) return;
+    const restoreTimer = window.setTimeout(() => setForm((current) => ({ ...current, ...(city ? { city } : {}), ...(draft || {}) })), 0);
     return () => window.clearTimeout(restoreTimer);
   }, []);
 
@@ -36,7 +43,7 @@ export default function PublisherWorkspace({ authenticated, onBack }: Props) {
   };
 
   const rentValue = Number(form.rent.replace(/[^0-9.]/g, ""));
-  const basicsReady = Boolean(form.title.trim() && form.district.trim() && form.community.trim() && rentValue && form.date && form.expiry);
+  const basicsReady = Boolean(form.title.trim() && form.city.trim() && normalizeChinaCity(form.city) !== "全国" && form.district.trim() && form.community.trim() && rentValue && form.date && form.expiry);
   const completedSteps = useMemo(() => [basicsReady, Boolean(contractFile), images.length > 0].filter(Boolean).length, [basicsReady, contractFile, images.length]);
 
   const chooseImages = (event: ChangeEvent<HTMLInputElement>) => {
@@ -63,6 +70,7 @@ export default function PublisherWorkspace({ authenticated, onBack }: Props) {
 
   const validate = () => {
     if (!form.title.trim()) return "请填写一个容易理解的房源标题。";
+    if (!form.city.trim() || normalizeChinaCity(form.city) === "全国") return "请填写房源所在的具体城市。";
     if (!form.district.trim()) return "请填写房源所在区域。";
     if (!form.community.trim()) return "请填写小区名称。";
     if (!rentValue) return "请填写正确的月租金。";
@@ -90,6 +98,7 @@ export default function PublisherWorkspace({ authenticated, onBack }: Props) {
     try {
       const body = new FormData();
       body.set("title", form.title.trim());
+      body.set("city", normalizeChinaCity(form.city));
       body.set("district", form.district.trim());
       body.set("community", form.community.trim());
       body.set("monthlyRentCents", String(Math.round(rentValue * 100)));
@@ -116,7 +125,7 @@ export default function PublisherWorkspace({ authenticated, onBack }: Props) {
       <span>✓</span><small>提交成功</small><h1>房源已进入审核</h1>
       <p>房源和实拍图片已经保存。你现在可以预览自己的房源，其他租客会在审核通过后看到它。</p>
       <div><b>接下来会发生什么？</b><ol><li>核对本套房源合同与地址</li><li>审核通过后进入公开找房列表</li><li>有租客联系时通过站内消息通知你</li></ol></div>
-      <button onClick={() => { window.location.href = `/listings/${submittedId}`; }}>查看我的房源 <span>→</span></button>
+      <button onClick={() => { const href = `/listings/${submittedId}`; announceRouteStart(href); router.push(href); }}>查看我的房源 <span>→</span></button>
     </div></div></section>;
   }
 
@@ -132,7 +141,8 @@ export default function PublisherWorkspace({ authenticated, onBack }: Props) {
     <div className="zuji-publisher-layout"><div className="zuji-publish-form">
       <PublishSection number="01" title="房源基本信息" hint="带 * 的内容会展示给找房用户，请尽量准确填写。">
         <label>房源标题 <Required /><input value={form.title} onChange={(event) => update("title", event.target.value)} placeholder="例如：后海地铁站旁安静次卧，采光很好" maxLength={40} /><small className="zuji-field-help">一句话说清位置、房型或最大优点</small></label>
-        <div className="zuji-form-row"><label>区域 <Required /><input value={form.district} onChange={(event) => update("district", event.target.value)} placeholder="例如：南山" /></label><label>小区 <Required /><input value={form.community} onChange={(event) => update("community", event.target.value)} placeholder="例如：蔚蓝海岸" /></label></div>
+        <div className="zuji-form-row"><label>城市 <Required /><input list="zuji-publish-cities" autoComplete="address-level2" value={form.city} onChange={(event) => update("city", event.target.value)} placeholder="例如：深圳" /><datalist id="zuji-publish-cities">{POPULAR_CITIES.map((item) => <option key={item} value={item} />)}</datalist></label><label>区域 <Required /><input autoComplete="address-level3" value={form.district} onChange={(event) => update("district", event.target.value)} placeholder="例如：南山" /></label></div>
+        <label>小区 <Required /><input autoComplete="address-line1" value={form.community} onChange={(event) => update("community", event.target.value)} placeholder="例如：蔚蓝海岸" /></label>
         <div className="zuji-form-row"><label>月租金 <Required /><div className="zuji-input-affix"><span>¥</span><input inputMode="decimal" value={form.rent} onChange={(event) => update("rent", event.target.value)} placeholder="3600" /><em>元/月</em></div></label><label>最早可入住 <Required /><input type="date" value={form.date} onChange={(event) => update("date", event.target.value)} /></label></div>
         <label>当前租约到期 <Required /><input type="date" value={form.expiry} min={form.date || undefined} onChange={(event) => update("expiry", event.target.value)} /><small className="zuji-field-help">用于判断可转租时间，不会公开合同原件</small></label>
         <label>补充说明 <span className="zuji-optional">选填</span><textarea value={form.note} onChange={(event) => update("note", event.target.value)} placeholder="可以介绍房间朝向、家具、室友、通勤和看房时间……" rows={5} /></label>
@@ -160,7 +170,7 @@ export default function PublisherWorkspace({ authenticated, onBack }: Props) {
     </div><div className="zuji-publish-tip"><b>材料如何使用？</b><p>登录账号确认发布归属；合同确认你与这套房的关系。合同和支付记录只用于审核，不会出现在公开页面。</p></div></aside>
     </div>
 
-    {preview && <div className="zuji-preview-backdrop" onClick={() => setPreview(false)}><div className="zuji-preview" onClick={(event) => event.stopPropagation()}><button className="close" onClick={() => setPreview(false)}>×</button><span>租客看到的房源卡片</span><div className="zuji-preview-photo">{images[0] ? <img src={images[0].url} alt="房源封面预览" /> : <p>添加房源图片后会显示在这里</p>}<b>合同待审核</b></div><small>{form.district || "区域"} · {form.community || "小区"}</small><h2>{form.title || "你的房源标题"}</h2><p>{form.date ? `${form.date} 起可入住` : "入住时间待填写"}</p><strong>¥{rentValue ? rentValue.toLocaleString() : "—"}<em>/月</em></strong><button onClick={() => setPreview(false)}>继续编辑</button></div></div>}
+    {preview && <div className="zuji-preview-backdrop" onClick={() => setPreview(false)}><div className="zuji-preview" onClick={(event) => event.stopPropagation()}><button className="close" onClick={() => setPreview(false)}>×</button><span>租客看到的房源卡片</span><div className="zuji-preview-photo">{images[0] ? <img src={images[0].url} alt="房源封面预览" /> : <p>添加房源图片后会显示在这里</p>}<b>合同待审核</b></div><small>{form.city || "城市"} · {form.district || "区域"} · {form.community || "小区"}</small><h2>{form.title || "你的房源标题"}</h2><p>{form.date ? `${form.date} 起可入住` : "入住时间待填写"}</p><strong>¥{rentValue ? rentValue.toLocaleString() : "—"}<em>/月</em></strong><button onClick={() => setPreview(false)}>继续编辑</button></div></div>}
   </div></section>;
 }
 

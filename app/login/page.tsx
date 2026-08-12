@@ -1,5 +1,4 @@
 import { chatGPTSignOutPath, getChatGPTUser, isDemoAuthEnabled } from "../chatgpt-auth";
-import BottomNavigation from "../_components/BottomNavigation";
 import Link from "../_components/SafeLink";
 import LoginMethods from "./LoginMethods";
 
@@ -43,6 +42,5 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     </section>
 
     <footer className="zuji-login-footer"><div className="zuji-login-container"><span>© 2026 ZUJI</span><p>让转租回到租客之间。</p></div></footer>
-    <BottomNavigation userName={user?.displayName || null} />
   </main>;
 }

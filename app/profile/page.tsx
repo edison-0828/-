@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import SiteHeader from "../_components/SiteHeader";
 import Link from "../_components/SafeLink";
 import { getChatGPTUser } from "../chatgpt-auth";
 import ProfileDashboard from "./ProfileDashboard";
@@ -18,7 +17,6 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   const initialTab = profileTabs.find((tab) => tab === requestedTab) || "listings";
 
   return <main className="zuji-page zuji-black-yellow-theme">
-    <SiteHeader active="profile" userName={user.displayName} authMethod={user.authMethod} />
     <section className="zuji-profile-page zuji-container">
       <div className="zuji-page-context"><Link href="/"><i aria-hidden="true">←</i><b>返回找房</b></Link><span>我的</span></div>
       <div className="zuji-profile-heading"><span>个人中心</span><h1>你好，{user.displayName}</h1><p>管理账号信息，并快速回到找房或转租流程。</p></div>

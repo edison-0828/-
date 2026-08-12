@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import SiteHeader from "../../_components/SiteHeader";
 import Link from "../../_components/SafeLink";
 
 type MessageItem = { id: string; body: string; createdAt: string; readAt: string | null; mine: boolean };
@@ -11,7 +10,7 @@ type ThreadData = {
   messages: MessageItem[];
 };
 
-export default function MessageThreadClient({ listingId, participantId, userName, authMethod }: { listingId: string; participantId: string; userName: string; authMethod: "chatgpt" | "demo" }) {
+export default function MessageThreadClient({ listingId, participantId }: { listingId: string; participantId: string }) {
   const [thread, setThread] = useState<ThreadData | null>(null);
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(true);
@@ -83,7 +82,6 @@ export default function MessageThreadClient({ listingId, participantId, userName
   };
 
   return <main className="zuji-page zuji-black-yellow-theme">
-    <SiteHeader active="messages" userName={userName} authMethod={authMethod} />
     <section className="zuji-message-page zuji-container">
       <div className="zuji-page-context zuji-message-back"><Link href="/messages"><i aria-hidden="true">←</i><b>返回消息中心</b></Link><span>对话详情</span></div>
       {loading ? <div className="zuji-message-loading">正在打开对话…</div> : error && !thread ? <div className="zuji-profile-error"><b>无法打开这段对话</b><p>{error}</p><button onClick={() => void loadThread(true)}>重新加载</button></div> : thread && <div className="zuji-message-layout">

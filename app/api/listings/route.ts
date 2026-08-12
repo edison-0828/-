@@ -2,6 +2,7 @@ import { env } from "cloudflare:workers";
 import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { listingDocuments, listingVerificationCases, listings } from "../../../db/schema";
+import { normalizeChinaCity } from "../../_lib/china-cities";
 import { getRequestUserId } from "../_lib/request-user";
 
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -52,17 +53,18 @@ function withImages<T extends { id: string }>(rows: T[], documents: Array<{ id: 
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
-    const city = url.searchParams.get("city") || "深圳";
+    const city = normalizeChinaCity(url.searchParams.get("city"));
     const district = url.searchParams.get("district");
     const viewerId = await getRequestUserId(request);
     const visibility = viewerId
       ? or(eq(listings.status, "published"), eq(listings.publisherId, viewerId))
       : eq(listings.status, "published");
-    const conditions = [eq(listings.city, city), visibility];
+    const conditions = [visibility];
+    if (city) conditions.push(eq(listings.city, city));
     if (district) conditions.push(eq(listings.district, district));
 
     const db = getDb();
-    const rows = await db.select().from(listings).where(and(...conditions)).orderBy(desc(listings.exposureScore), desc(listings.createdAt)).limit(50);
+    const rows = await db.select().from(listings).where(and(...conditions)).orderBy(desc(listings.exposureScore), desc(listings.createdAt)).limit(100);
     if (!rows.length) return Response.json({ listings: [] });
 
     const documents = await db.select({ id: listingDocuments.id, listingId: listingDocuments.listingId })
@@ -87,6 +89,7 @@ export async function POST(request: Request) {
 
     const form = await request.formData();
     const title = textField(form, "title");
+    const city = normalizeChinaCity(textField(form, "city"));
     const district = textField(form, "district");
     const community = textField(form, "community");
     const availableFrom = textField(form, "availableFrom");
@@ -97,8 +100,8 @@ export async function POST(request: Request) {
     const images = fileFields(form.getAll("images")).slice(0, 8);
     const payments = fileFields(form.getAll("payments")).slice(0, 6);
 
-    if (!title || !district || !community || !availableFrom || !leaseEndsAt || monthlyRentCents <= 0) {
-      return Response.json({ error: "标题、区域、小区、租金、可入住时间和到期时间均为必填项。" }, { status: 400 });
+    if (!title || !city || city === "全国" || !district || !community || !availableFrom || !leaseEndsAt || monthlyRentCents <= 0) {
+      return Response.json({ error: "标题、城市、区域、小区、租金、可入住时间和到期时间均为必填项。" }, { status: 400 });
     }
     if (leaseEndsAt < availableFrom) return Response.json({ error: "租约到期时间不能早于可入住时间。" }, { status: 400 });
     if (!contract) return Response.json({ error: "请上传与这套房源对应的租赁合同。" }, { status: 400 });
@@ -124,7 +127,7 @@ export async function POST(request: Request) {
 
     const db = getDb();
     const listing: typeof listings.$inferInsert = {
-      id: listingId, publisherId, title, city: "深圳", district, community,
+      id: listingId, publisherId, title, city, district, community,
       monthlyRentCents, availableFrom, leaseEndsAt, description,
       status: "pending_review", exposureScore: 0,
     };

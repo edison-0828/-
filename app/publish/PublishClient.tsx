@@ -1,11 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import PublisherWorkspace from "../PublisherWorkspace";
-import SiteHeader from "../_components/SiteHeader";
+import { announceRouteStart } from "../_components/SafeLink";
 
-export default function PublishClient({ userName, authenticated, authMethod }: { userName: string; authenticated: boolean; authMethod: "chatgpt" | "demo" | null }) {
+export default function PublishClient({ authenticated }: { authenticated: boolean }) {
+  const router = useRouter();
   return <main className="zuji-page zuji-black-yellow-theme">
-    <SiteHeader active="publish" userName={authenticated ? userName : null} authMethod={authMethod} />
-    <PublisherWorkspace authenticated={authenticated} onBack={() => { window.location.href = "/"; }} />
+    <PublisherWorkspace authenticated={authenticated} onBack={() => { announceRouteStart("/"); router.push("/"); }} />
   </main>;
 }

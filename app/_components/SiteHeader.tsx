@@ -1,16 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import BottomNavigation from "./BottomNavigation";
 import type { NavigationDestination } from "./BottomNavigation";
 import Link from "./SafeLink";
 
 type AuthMethod = "chatgpt" | "demo";
-type Props = { active: NavigationDestination; userName?: string | null; authMethod?: AuthMethod | null };
+type NotificationSummary = { unreadMessages: number; pendingViewings: number; total: number };
+type Props = { active: NavigationDestination; userName?: string | null; authMethod?: AuthMethod | null; notifications?: NotificationSummary };
 
-export default function SiteHeader({ active, userName, authMethod }: Props) {
+export default function SiteHeader({ active, userName, authMethod, notifications = { unreadMessages: 0, pendingViewings: 0, total: 0 } }: Props) {
   const [accountOpen, setAccountOpen] = useState(false);
-  const [notifications, setNotifications] = useState({ unreadMessages: 0, pendingViewings: 0, total: 0 });
   const accountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,23 +28,6 @@ export default function SiteHeader({ active, userName, authMethod }: Props) {
     };
   }, [accountOpen]);
 
-  useEffect(() => {
-    if (!userName) return;
-    const loadNotifications = () => {
-      fetch("/api/notifications", { cache: "no-store" })
-        .then((response) => response.json())
-        .then((payload: { unreadMessages?: number; pendingViewings?: number; total?: number }) => setNotifications({ unreadMessages: payload.unreadMessages || 0, pendingViewings: payload.pendingViewings || 0, total: payload.total || 0 }))
-        .catch(() => setNotifications({ unreadMessages: 0, pendingViewings: 0, total: 0 }));
-    };
-    loadNotifications();
-    window.addEventListener("focus", loadNotifications);
-    window.addEventListener("zuji:notifications-changed", loadNotifications);
-    return () => {
-      window.removeEventListener("focus", loadNotifications);
-      window.removeEventListener("zuji:notifications-changed", loadNotifications);
-    };
-  }, [userName]);
-
   const goToLogin = () => {
     const returnTo = `${window.location.pathname}${window.location.search}`;
     window.location.href = `/login?return_to=${encodeURIComponent(returnTo)}`;
@@ -57,8 +39,7 @@ export default function SiteHeader({ active, userName, authMethod }: Props) {
   const messagesHref = userName ? "/messages" : "/login?return_to=%2Fmessages";
   const profileHref = userName ? "/profile" : "/login?return_to=%2Fprofile";
 
-  return <>
-    <header className="zuji-header">
+  return <header className="zuji-header">
       <div className="zuji-container zuji-header-inner">
         <Link className="zuji-brand" href="/" aria-label="租迹首页"><span>租</span><b>租迹 <em>ZUJI</em></b></Link>
         <nav className="zuji-role-switch" aria-label="使用模式">
@@ -79,7 +60,5 @@ export default function SiteHeader({ active, userName, authMethod }: Props) {
           </div> : <button type="button" onClick={goToLogin}>登录</button>}
         </div>
       </div>
-    </header>
-    <BottomNavigation active={active} userName={userName} unreadMessages={userName ? notifications.unreadMessages : 0} />
-  </>;
+    </header>;
 }

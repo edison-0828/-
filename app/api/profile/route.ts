@@ -12,6 +12,7 @@ export async function GET(request: Request) {
     const myListings = await db.select({
       id: listings.id,
       title: listings.title,
+      city: listings.city,
       district: listings.district,
       community: listings.community,
       monthlyRentCents: listings.monthlyRentCents,
@@ -23,6 +24,7 @@ export async function GET(request: Request) {
     const favoriteListings = await db.select({
       id: listings.id,
       title: listings.title,
+      city: listings.city,
       district: listings.district,
       community: listings.community,
       monthlyRentCents: listings.monthlyRentCents,

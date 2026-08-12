@@ -2,6 +2,7 @@ export type ApiListing = {
   id: string;
   publisherId: string;
   title: string;
+  city: string;
   district: string;
   community: string;
   monthlyRentCents: number;

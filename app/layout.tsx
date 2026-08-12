@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import NavigationShell from "./_components/NavigationShell";
+import { getChatGPTUser } from "./chatgpt-auth";
 import "./globals.css";
 import "./marketplace.css";
 
@@ -18,6 +20,8 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", images: ["/og.png"] },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="zh-CN"><body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body></html>;
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const user = await getChatGPTUser();
+  const initialUser = user ? { displayName: user.displayName, email: user.email, authMethod: user.authMethod } : null;
+  return <html lang="zh-CN"><body className={`${geistSans.variable} ${geistMono.variable} antialiased`}><NavigationShell initialUser={initialUser}>{children}</NavigationShell></body></html>;
 }
