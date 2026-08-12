@@ -54,7 +54,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const city = url.searchParams.get("city") || "深圳";
     const district = url.searchParams.get("district");
-    const viewerId = getRequestUserId(request);
+    const viewerId = await getRequestUserId(request);
     const visibility = viewerId
       ? or(eq(listings.status, "published"), eq(listings.publisherId, viewerId))
       : eq(listings.status, "published");
@@ -76,7 +76,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const publisherId = getRequestUserId(request);
+  const publisherId = await getRequestUserId(request);
   if (!publisherId) return Response.json({ error: "请先登录后再发布房源。" }, { status: 401 });
 
   const uploadedKeys: string[] = [];

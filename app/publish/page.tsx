@@ -5,5 +5,5 @@ export const dynamic = "force-dynamic";
 
 export default async function PublishPage() {
   const user = await getChatGPTUser();
-  return <PublishClient userName={user?.displayName || "当前账号"} authenticated={Boolean(user)} />;
+  return <PublishClient userName={user?.displayName || "当前账号"} authenticated={Boolean(user)} authMethod={user?.authMethod || null} />;
 }

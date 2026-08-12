@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent, ReactNode } from "react";
 
 type Props = { authenticated: boolean; onBack: () => void };
@@ -18,6 +18,17 @@ export default function PublisherWorkspace({ authenticated, onBack }: Props) {
   const [submittedId, setSubmittedId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [preview, setPreview] = useState(false);
+
+  useEffect(() => {
+    const saved = window.sessionStorage.getItem("zuji-publish-login-draft");
+    if (!saved) return;
+    let draft: Partial<FormState> | null = null;
+    try { draft = JSON.parse(saved) as Partial<FormState>; } catch { /* Ignore an invalid local draft. */ }
+    window.sessionStorage.removeItem("zuji-publish-login-draft");
+    if (!draft) return;
+    const restoreTimer = window.setTimeout(() => setForm((current) => ({ ...current, ...draft })), 0);
+    return () => window.clearTimeout(restoreTimer);
+  }, []);
 
   const update = (key: keyof FormState, value: string) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -64,9 +75,14 @@ export default function PublisherWorkspace({ authenticated, onBack }: Props) {
   };
 
   const submit = async () => {
+    if (!basicsReady) return setError(validate());
+    if (!authenticated) {
+      window.sessionStorage.setItem("zuji-publish-login-draft", JSON.stringify(form));
+      window.location.href = "/login?return_to=/publish";
+      return;
+    }
     const validationError = validate();
     if (validationError) return setError(validationError);
-    if (!authenticated) return setError("当前站点账号状态未识别，请刷新页面后重试。");
     if (!contractFile) return;
 
     setError("");
@@ -105,7 +121,7 @@ export default function PublisherWorkspace({ authenticated, onBack }: Props) {
   }
 
   return <section className="zuji-publisher"><div className="zuji-container">
-    <header className="zuji-publisher-head"><div><span>我要转租 · 发布工作台</span><h1>发布一套真实房源</h1><p>先把房子介绍清楚，登录账号和本套房源合同会分别确认。</p></div><button onClick={onBack}>← 返回找房</button></header>
+    <header className="zuji-publisher-head"><div><span>我要转租 · 发布工作台</span><h1>把房源信息一次讲清楚</h1><p>准备好房源照片和当前租约，按步骤填写即可。登录会在最终提交时检查。</p><div className="zuji-publisher-badges"><b>约 5–8 分钟</b><b>最多 8 张照片</b><b>原始材料不公开</b></div></div><button onClick={onBack}>← 返回找房</button></header>
     <div className="zuji-publish-progress">
       <Progress number="01" label="填写房源" done={basicsReady} />
       <Progress number="02" label="上传证明" done={Boolean(contractFile)} />

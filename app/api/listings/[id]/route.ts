@@ -8,7 +8,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const db = getDb();
     const [listing] = await db.select().from(listings).where(eq(listings.id, id)).limit(1);
-    const viewerId = getRequestUserId(request);
+    const viewerId = await getRequestUserId(request);
     if (!listing || (listing.status !== "published" && listing.publisherId !== viewerId)) {
       return Response.json({ error: "房源不存在或已下架。" }, { status: 404 });
     }

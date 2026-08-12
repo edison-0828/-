@@ -1,150 +1,162 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import SiteHeader from "./_components/SiteHeader";
+import Link from "./_components/SafeLink";
 import { toListingView } from "./_lib/listings";
 import type { ApiListing, ListingView } from "./_lib/listings";
 
 const districts = ["全部", "南山", "福田", "宝安", "龙华"];
+const rentOptions = [
+  { label: "不限租金", value: "all" },
+  { label: "4000元内", value: "under4000" },
+  { label: "4000–5000元", value: "4000to5000" },
+  { label: "5000元以上", value: "over5000" },
+] as const;
+
+type RentFilter = typeof rentOptions[number]["value"];
+type SortMode = "latest" | "priceAsc" | "priceDesc";
 
 export default function HomeMarketplace() {
   const [listings, setListings] = useState<ListingView[]>([]);
   const [query, setQuery] = useState("");
   const [district, setDistrict] = useState("全部");
+  const [rentFilter, setRentFilter] = useState<RentFilter>("all");
+  const [sortMode, setSortMode] = useState<SortMode>("latest");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [userName, setUserName] = useState<string | null | undefined>(undefined);
+  const [authMethod, setAuthMethod] = useState<"chatgpt" | "demo" | null>(null);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [favoriteBusyId, setFavoriteBusyId] = useState("");
 
   useEffect(() => {
+    const requestedDistrict = new URLSearchParams(window.location.search).get("district");
+    const districtTimer = requestedDistrict && districts.includes(requestedDistrict)
+      ? window.setTimeout(() => setDistrict(requestedDistrict), 0)
+      : undefined;
+
     fetch("/api/session")
       .then((response) => response.json())
-      .then((payload: { user: { displayName: string } | null }) => setUserName(payload.user?.displayName || null))
-      .catch(() => null);
+      .then((payload: { user: { displayName: string; authMethod: "chatgpt" | "demo" } | null }) => { setUserName(payload.user?.displayName || null); setAuthMethod(payload.user?.authMethod || null); })
+      .catch(() => setUserName(null));
+
     fetch("/api/listings")
       .then(async (response) => {
-        const payload = await response.json() as { listings?: ApiListing[] };
-        if (response.ok) setListings((payload.listings || []).map(toListingView));
+        const payload = await response.json() as { listings?: ApiListing[]; error?: string };
+        if (!response.ok) throw new Error(payload.error || "房源加载失败");
+        setListings((payload.listings || []).map(toListingView));
       })
-      .catch(() => null)
+      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "房源加载失败"))
       .finally(() => setLoading(false));
+    return () => {
+      if (districtTimer !== undefined) window.clearTimeout(districtTimer);
+    };
   }, []);
 
-  const filtered = useMemo(() => listings.filter((item) => {
-    const keyword = query.trim().toLowerCase();
-    const matchesKeyword = !keyword || `${item.title}${item.district}${item.community}`.toLowerCase().includes(keyword);
-    return matchesKeyword && (district === "全部" || item.district === district);
-  }), [district, listings, query]);
+  useEffect(() => {
+    if (!userName) {
+      if (userName !== null) return;
+      const clearTimer = window.setTimeout(() => setSavedIds(new Set()), 0);
+      return () => window.clearTimeout(clearTimer);
+    }
+    fetch("/api/favorites")
+      .then((response) => response.json())
+      .then((payload: { favoriteIds?: string[] }) => setSavedIds(new Set(payload.favoriteIds || [])))
+      .catch(() => setSavedIds(new Set()));
+  }, [userName]);
 
-  const selectDistrict = (value: string) => {
+  const publicListings = useMemo(() => listings.filter((item) => item.status !== "pending_review" && item.status !== "rejected"), [listings]);
+  const pendingListings = useMemo(() => listings.filter((item) => item.status === "pending_review"), [listings]);
+
+  const filtered = useMemo(() => {
+    const keyword = query.trim().toLowerCase();
+    const result = publicListings.filter((item) => {
+      const matchesKeyword = !keyword || `${item.title}${item.district}${item.community}${item.description || ""}`.toLowerCase().includes(keyword);
+      const matchesDistrict = district === "全部" || item.district === district;
+      const matchesRent = rentFilter === "all"
+        || (rentFilter === "under4000" && item.price < 4000)
+        || (rentFilter === "4000to5000" && item.price >= 4000 && item.price <= 5000)
+        || (rentFilter === "over5000" && item.price > 5000);
+      return matchesKeyword && matchesDistrict && matchesRent;
+    });
+    return [...result].sort((a, b) => sortMode === "priceAsc" ? a.price - b.price : sortMode === "priceDesc" ? b.price - a.price : b.availableFrom.localeCompare(a.availableFrom));
+  }, [district, publicListings, query, rentFilter, sortMode]);
+
+  const chooseDistrict = (value: string) => {
     setDistrict(value);
-    document.getElementById("listings")?.scrollIntoView({ behavior: "smooth" });
+    const url = new URL(window.location.href);
+    if (value === "全部") url.searchParams.delete("district"); else url.searchParams.set("district", value);
+    window.history.replaceState({}, "", `${url.pathname}${url.search}`);
   };
 
-  const feature = listings[0];
+  const jumpToListings = () => document.getElementById("listings")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  return (
-    <main className="zuji-page zuji-orange-theme">
-      <SiteHeader active="find" userName={userName} />
+  const toggleFavorite = async (listingId: string) => {
+    if (userName === undefined || favoriteBusyId) return;
+    if (!userName) {
+      window.location.href = "/login?return_to=%2F%23listings";
+      return;
+    }
 
-      <section className="zuji-new-hero">
-        <div className="zuji-container zuji-new-hero-grid">
-          <div className="zuji-new-hero-copy">
-            <div className="zuji-new-kicker"><span /> 深圳真实转租平台</div>
-            <h1>租房这件事，<br /><em>可以更踏实一点。</em></h1>
-            <p>从真实租客手里找到下一间房。价格、租期与租赁关系都清楚展示，少一点试探，多一点安心。</p>
+    const wasSaved = savedIds.has(listingId);
+    setFavoriteBusyId(listingId);
+    setSavedIds((current) => { const next = new Set(current); if (wasSaved) next.delete(listingId); else next.add(listingId); return next; });
+    try {
+      const response = await fetch(wasSaved ? `/api/favorites?listingId=${encodeURIComponent(listingId)}` : "/api/favorites", {
+        method: wasSaved ? "DELETE" : "POST",
+        headers: wasSaved ? undefined : { "content-type": "application/json" },
+        body: wasSaved ? undefined : JSON.stringify({ listingId }),
+      });
+      if (response.status === 401) {
+        window.location.href = "/login?return_to=%2F%23listings";
+        return;
+      }
+      if (!response.ok) throw new Error("收藏操作失败");
+    } catch {
+      setSavedIds((current) => { const next = new Set(current); if (wasSaved) next.add(listingId); else next.delete(listingId); return next; });
+    } finally {
+      setFavoriteBusyId("");
+    }
+  };
 
-            <div className="zuji-new-search">
-              <span aria-hidden="true">⌕</span>
-              <label>
-                <small>想住在哪里？</small>
-                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="小区、地铁站或区域" />
-              </label>
-              <button onClick={() => document.getElementById("listings")?.scrollIntoView({ behavior: "smooth" })}>开始找房 <b>→</b></button>
-            </div>
+  return <main className="zuji-page zuji-find-page"><SiteHeader active="find" userName={userName} authMethod={authMethod} />
+    <section className="zuji-find-hero"><div className="zuji-container">
+      <div className="zuji-find-location"><span>深圳</span><b>真实租客转租</b></div>
+      <h1>找到一间，<em>信息清楚的房子</em></h1>
+      <p>价格、入住时间和租约核验结果都放在明面上，先看合不合适，再联系发布者。</p>
+      <div className="zuji-find-search"><span aria-hidden="true">⌕</span><input aria-label="搜索房源" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") jumpToListings(); }} placeholder="搜索小区、区域或地铁站" />{query && <button className="clear" onClick={() => setQuery("")} aria-label="清空搜索">×</button>}<button className="search" onClick={jumpToListings}>搜索房源</button></div>
+      <div className="zuji-find-shortcuts" aria-label="快捷找房">
+        <button onClick={() => { chooseDistrict("南山"); jumpToListings(); }}><span>南</span><b>南山房源</b><small>科技园 · 后海</small></button>
+        <button onClick={() => { chooseDistrict("福田"); jumpToListings(); }}><span>福</span><b>福田房源</b><small>车公庙 · 会展中心</small></button>
+        <button onClick={() => { setRentFilter("under4000"); jumpToListings(); }}><span>¥</span><b>预算友好</b><small>月租 4000 元内</small></button>
+        <button onClick={() => { setQuery("地铁"); jumpToListings(); }}><span>铁</span><b>近地铁</b><small>通勤更方便</small></button>
+      </div>
+      <div className="zuji-find-assurance"><span>✓ 发布账号可确认</span><span>✓ 每套房单独核验租约</span><span>✓ 浏览房源无需登录</span></div>
+    </div></section>
 
-            <div className="zuji-new-quick">
-              <span>热门区域</span>
-              {districts.slice(1).map((item) => <button key={item} onClick={() => selectDistrict(item)}>{item}</button>)}
-            </div>
+    <section className="zuji-find-catalog zuji-container" id="listings">
+      <header className="zuji-find-section-head"><div><span>深圳转租房源</span><h2>看看最近有哪些好房</h2></div><p>{loading ? "正在更新房源…" : `共 ${publicListings.length} 套公开房源`}</p></header>
 
-            <Link className="zuji-hero-publish-entry" href="/publish">
-              <span className="zuji-hero-publish-icon">↗</span>
-              <span><small>我是租客，有房要转租</small><b>进入房源发布工作台</b></span>
-              <em>去发布 →</em>
-            </Link>
+      {pendingListings.length > 0 && <Link className="zuji-my-pending" href="/publish"><span>⌛</span><p><b>你有 {pendingListings.length} 套房源正在审核</b><small>审核中的房源不会展示在公开找房列表</small></p><em>查看发布 →</em></Link>}
 
-            <div className="zuji-new-stats" aria-label="平台保障">
-              <div><b>双重</b><span>身份与租约核验</span></div>
-              <div><b>站内</b><span>沟通更安心</span></div>
-              <div><b>免费</b><span>浏览全部房源</span></div>
-            </div>
-          </div>
+      <div className="zuji-find-filterbar">
+        <div className="zuji-find-districts" role="group" aria-label="按区域筛选">{districts.map((item) => <button key={item} aria-pressed={district === item} className={district === item ? "active" : ""} onClick={() => chooseDistrict(item)}>{item}</button>)}</div>
+        <div className="zuji-find-selects"><select aria-label="按租金筛选" value={rentFilter} onChange={(event) => setRentFilter(event.target.value as RentFilter)}>{rentOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><select aria-label="房源排序" value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}><option value="latest">最近可入住</option><option value="priceAsc">租金从低到高</option><option value="priceDesc">租金从高到低</option></select></div>
+      </div>
 
-          <div className="zuji-new-feature">
-            <div className="zuji-feature-photo">
-              <img src={feature?.image || "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1400&q=82"} alt="明亮舒适的真实出租房源" />
-              <span className="zuji-photo-count">精选房源 · 01</span>
-              <div className="zuji-feature-info">
-                <small>{feature?.district || "南山"} · {feature?.community || "后海"}</small>
-                <b>¥{feature?.price.toLocaleString() || "3,600"}<em>/月</em></b>
-              </div>
-            </div>
-            <div className="zuji-feature-note"><span>✓</span><p><b>本套租约已核验</b><small>地址与当前房源信息一致</small></p></div>
-            <div className="zuji-feature-shape" aria-hidden="true">住得<br />明白</div>
-          </div>
-        </div>
-      </section>
+      <div className="zuji-find-result-head"><span>{loading ? "正在加载…" : `找到 ${filtered.length} 套房源`}</span>{(query || district !== "全部" || rentFilter !== "all") && <button onClick={() => { setQuery(""); setRentFilter("all"); chooseDistrict("全部"); }}>清除条件</button>}</div>
 
-      <section className="zuji-new-catalog zuji-container" id="listings">
-        <aside className="zuji-catalog-intro">
-          <div className="zuji-new-kicker"><span /> 正在转租</div>
-          <h2>看看最近<br />有哪些好房。</h2>
-          <p>每套房源都来自真实租客。先从区域开始，慢慢找到适合你的那一间。</p>
-          <div className="zuji-new-filters" role="group" aria-label="按区域筛选">
-            {districts.map((item) => <button key={item} className={district === item ? "active" : ""} onClick={() => setDistrict(item)}>{item}<span>{item === "全部" ? listings.length : listings.filter((listing) => listing.district === item).length}</span></button>)}
-          </div>
-        </aside>
+      {error ? <div className="zuji-find-state"><b>暂时无法加载房源</b><span>{error}</span></div> : loading ? <div className="zuji-find-list">{[1,2,3,4].map((item) => <div className="zuji-find-skeleton" key={item} />)}</div> : filtered.length ? <div className="zuji-find-list">{filtered.map((item) => <ListingCard key={item.id} listing={item} saved={savedIds.has(item.id)} busy={favoriteBusyId === item.id} onToggleFavorite={toggleFavorite} />)}</div> : <div className="zuji-find-state"><b>没有找到符合条件的房源</b><span>试试放宽区域、租金或搜索条件。</span><button onClick={() => { setQuery(""); setRentFilter("all"); chooseDistrict("全部"); }}>查看全部房源</button></div>}
+    </section>
 
-        <div className="zuji-catalog-results">
-          <div className="zuji-results-head"><span>{loading ? "正在同步最新房源…" : `为你找到 ${filtered.length} 套房源`}</span><button type="button">最新发布 ↓</button></div>
-          {filtered.length ? <div className="zuji-new-card-grid">{filtered.map((item, index) => <ListingCard key={item.id} listing={item} index={index} />)}</div> : <div className="zuji-new-empty"><b>暂时没有符合条件的房源</b><span>换个区域或搜索词试试。</span></div>}
-        </div>
-      </section>
-
-      <section className="zuji-new-trust" id="trust">
-        <div className="zuji-container zuji-new-trust-layout">
-          <div className="zuji-trust-title"><div className="zuji-new-kicker light"><span /> 为什么更放心</div><h2>先看证据，<br />再决定要不要联系。</h2></div>
-          <div className="zuji-new-trust-list">
-            <article><b>01</b><div><h3>发布者身份可确认</h3><p>实名认证确认“这个人是谁”，让每一次沟通都有清晰的起点。</p></div></article>
-            <article><b>02</b><div><h3>每套房单独核验租约</h3><p>合同地址与当前房源逐一匹配，避免旧合同被重复用于新房源。</p></div></article>
-            <article><b>03</b><div><h3>沟通先留在站内</h3><p>问清租期与室友再决定，平台会持续提示你保护隐私和资金安全。</p></div></article>
-          </div>
-        </div>
-      </section>
-
-      <section className="zuji-new-publish zuji-container">
-        <div><span>有房子需要转租？</span><h2>把真实信息讲清楚，<br />合适的租客自然会找到你。</h2></div>
-        <Link href="/publish">发布我的房源 <span>→</span></Link>
-      </section>
-
-      <footer className="zuji-new-footer"><div className="zuji-container"><Link className="zuji-brand" href="/"><span>租</span><b>租迹 <em>ZUJI</em></b></Link><p>让转租回到租客之间。</p><small>© 2026 ZUJI</small></div></footer>
-    </main>
-  );
+    <section className="zuji-find-trust" id="trust"><div className="zuji-container"><div><span>租迹的不同</span><h2>不只展示房源，<br />也说明它为什么可信。</h2></div><div className="zuji-find-trust-items"><article><b>01</b><h3>确认发布账号</h3><p>让沟通有清晰起点，个人证件不会公开展示。</p></article><article><b>02</b><h3>核对本套租约</h3><p>每套新房源都要重新匹配对应合同。</p></article><article><b>03</b><h3>先站内沟通</h3><p>看房前不转账，不急着交换隐私信息。</p></article></div></div></section>
+    <section className="zuji-find-publish zuji-container"><div><span>你也有房子需要转租？</span><h2>用几分钟讲清楚房源，找到合适的下一位租客。</h2></div><Link href="/publish">发布转租 <span>→</span></Link></section>
+    <footer className="zuji-new-footer"><div className="zuji-container"><Link className="zuji-brand" href="/"><span>租</span><b>租迹 <em>ZUJI</em></b></Link><p>让转租回到租客之间。</p><small>© 2026 ZUJI</small></div></footer>
+  </main>;
 }
 
-function ListingCard({ listing, index }: { listing: ListingView; index: number }) {
-  return (
-    <a className={`zuji-new-card ${index === 0 ? "featured" : ""}`} href={`/listings/${listing.id}`}>
-      <div className="zuji-new-card-photo">
-        <img src={listing.image} alt={listing.title} />
-        <span>{listing.status === "pending_review" ? "⌛ 我的房源 · 审核中" : "✓ 租约已核验"}</span>
-        <button type="button" aria-label="收藏房源" onClick={(event) => { event.preventDefault(); event.currentTarget.classList.toggle("saved"); }}>♡</button>
-      </div>
-      <div className="zuji-new-card-body">
-        <div className="zuji-new-card-meta"><span>{listing.district} · {listing.community}</span><span>{listing.availableFrom}起</span></div>
-        <h3>{listing.title}</h3>
-        <div className="zuji-new-card-bottom"><p><b>¥{listing.price.toLocaleString()}</b><small>/月</small></p><span>查看详情 →</span></div>
-      </div>
-    </a>
-  );
+function ListingCard({ listing, saved, busy, onToggleFavorite }: { listing: ListingView; saved: boolean; busy: boolean; onToggleFavorite: (listingId: string) => void }) {
+  const tags = [listing.title.includes("地铁") ? "近地铁" : "租约已核验", listing.price < 4000 ? "预算友好" : "真实租客发布"];
+  return <article className="zuji-find-card"><Link href={`/listings/${listing.id}`} className="zuji-find-card-link"><div className="zuji-find-card-photo"><img src={listing.image} alt={listing.title} /><span>✓ 本套租约已核验</span></div><div className="zuji-find-card-content"><div className="zuji-find-card-place">{listing.district} · {listing.community}</div><h3>{listing.title}</h3><p className="zuji-find-card-desc">{listing.description || "房源由真实租客发布，可在站内进一步确认室友、家具和看房时间。"}</p><div className="zuji-find-card-tags">{tags.map((tag) => <span key={tag}>{tag}</span>)}</div><div className="zuji-find-card-foot"><span>{listing.availableFrom} 起可入住</span><strong>¥{listing.price.toLocaleString()}<em>/月</em></strong></div></div></Link><button className={`zuji-find-save ${saved ? "saved" : ""}`} disabled={busy} aria-label={saved ? "取消收藏" : "收藏房源"} aria-pressed={saved} onClick={() => onToggleFavorite(listing.id)}>{saved ? "♥" : "♡"}</button></article>;
 }

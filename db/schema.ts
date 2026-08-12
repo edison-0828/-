@@ -95,6 +95,7 @@ export const viewingRequests = sqliteTable("viewing_requests", {
   requestedDate: text("requested_date").notNull(),
   requestedTime: text("requested_time").notNull(),
   note: text("note").notNull().default(""),
+  publisherNote: text("publisher_note").notNull().default(""),
   status: text("status").notNull().default("pending"),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
@@ -113,4 +114,15 @@ export const messages = sqliteTable("messages", {
   readAt: text("read_at"),
 }, (table) => ({
   conversationIdx: index("idx_messages_conversation").on(table.listingId, table.senderId, table.recipientId, table.createdAt),
+}));
+
+export const favorites = sqliteTable("favorites", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  listingId: text("listing_id").notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  userListingUnique: uniqueIndex("ux_favorites_user_listing").on(table.userId, table.listingId),
+  userCreatedIdx: index("idx_favorites_user_created").on(table.userId, table.createdAt),
+  listingIdx: index("idx_favorites_listing_id").on(table.listingId),
 }));

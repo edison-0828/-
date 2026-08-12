@@ -12,7 +12,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (!document || document.kind !== "listing_image") return new Response("Not found", { status: 404 });
 
     const [listing] = await db.select({ status: listings.status, publisherId: listings.publisherId }).from(listings).where(eq(listings.id, document.listingId)).limit(1);
-    const viewerId = getRequestUserId(request);
+    const viewerId = await getRequestUserId(request);
     if (!listing || (listing.status !== "published" && listing.publisherId !== viewerId)) return new Response("Not found", { status: 404 });
 
     const files = (env as unknown as { FILES?: R2Bucket }).FILES;

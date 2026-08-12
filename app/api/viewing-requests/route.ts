@@ -4,7 +4,7 @@ import { listings, viewingRequests } from "../../../db/schema";
 import { getRequestUserId } from "../_lib/request-user";
 
 export async function POST(request: Request) {
-  const seekerId = getRequestUserId(request);
+  const seekerId = await getRequestUserId(request);
   if (!seekerId) return Response.json({ error: "请先登录。" }, { status: 401 });
   try {
     const payload = await request.json() as { listingId?: string; requestedDate?: string; requestedTime?: string; note?: string };

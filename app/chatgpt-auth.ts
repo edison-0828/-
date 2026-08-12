@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 export type ChatGPTUser = {
@@ -6,6 +6,7 @@ export type ChatGPTUser = {
   displayName: string;
   email: string;
   fullName: string | null;
+  authMethod: "chatgpt" | "demo";
 };
 
 const USER_ID_HEADER = "oai-authenticated-user-id";
@@ -17,12 +18,35 @@ const PERCENT_ENCODED_UTF8 = "percent-encoded-utf-8";
 const SIGN_IN_PATH = "/signin-with-chatgpt";
 const SIGN_OUT_PATH = "/signout-with-chatgpt";
 const CALLBACK_PATH = "/callback";
+export const DEMO_AUTH_COOKIE = "zuji-demo-session";
+
+export function isDemoAuthEnabled(): boolean {
+  return process.env.NODE_ENV !== "production";
+}
 
 export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
   const requestHeaders = await headers();
   const userId = requestHeaders.get(USER_ID_HEADER);
   const email = requestHeaders.get(USER_EMAIL_HEADER);
-  if (!userId || !email) return null;
+  if (!userId || !email) {
+    if (!isDemoAuthEnabled()) return null;
+    const rawDemoUser = (await cookies()).get(DEMO_AUTH_COOKIE)?.value;
+    if (!rawDemoUser) return null;
+
+    try {
+      const demoUser = JSON.parse(decodeURIComponent(rawDemoUser)) as { userId?: string; displayName?: string; phone?: string };
+      if (!demoUser.userId || !demoUser.displayName) return null;
+      return {
+        userId: demoUser.userId === "demo-publisher-001" ? "demo-publisher-001" : "demo-user",
+        displayName: demoUser.displayName,
+        email: `${demoUser.phone || "guest"}@demo.zuji.local`,
+        fullName: demoUser.displayName,
+        authMethod: "demo",
+      };
+    } catch {
+      return null;
+    }
+  }
 
   const encodedFullName = requestHeaders.get(USER_FULL_NAME_HEADER);
   const fullName =
@@ -36,6 +60,7 @@ export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
     displayName: fullName ?? email,
     email,
     fullName,
+    authMethod: "chatgpt",
   };
 }
 
