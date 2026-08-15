@@ -2,29 +2,20 @@
 import { ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import { useTabPageTransition } from "@/composables/useTabPageTransition";
+import { clearDemoAccount, getDemoAccount, getPublishedListings, isIdentityVerified } from "@/services/demo-storage";
+import type { PublishedListing } from "@/types/demo";
 
 const phone = ref("");
 const verified = ref(false);
 const { pageReady } = useTabPageTransition();
-const listings = ref<Array<{
-  id: string;
-  publisherPhone: string;
-  title: string;
-  city: string;
-  district: string;
-  community: string;
-  rent: string;
-  availableFrom: string;
-  cover: string;
-  status: string;
-}>>([]);
+const listings = ref<PublishedListing[]>([]);
 
 function openLogin() {
   uni.navigateTo({ url: "/pages/login/index" });
 }
 
 function logout() {
-  uni.removeStorageSync("zuji-demo-phone");
+  clearDemoAccount();
   phone.value = "";
   uni.showToast({ title: "已退出登录", icon: "none" });
 }
@@ -46,10 +37,9 @@ function openProtected(path: string) {
 }
 
 onShow(() => {
-  phone.value = String(uni.getStorageSync("zuji-demo-phone") || "");
-  verified.value = Boolean(phone.value && uni.getStorageSync(`zuji-real-name:${phone.value}`) === "verified");
-  const stored = uni.getStorageSync("zuji-demo-listings");
-  listings.value = (Array.isArray(stored) ? stored : []).filter((item) => item?.publisherPhone === phone.value);
+  phone.value = getDemoAccount();
+  verified.value = isIdentityVerified(phone.value);
+  listings.value = getPublishedListings(phone.value);
 });
 </script>
 

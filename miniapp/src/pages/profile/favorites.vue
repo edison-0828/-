@@ -1,25 +1,24 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
+import { getDemoAccount, getFavorites, saveFavorites } from "@/services/demo-storage";
+import type { DemoFavorite } from "@/types/demo";
 
-type Favorite = { id: string; title: string; city: string; district: string; community: string; price: number; availableFrom: string; image: string };
-const favorites = ref<Favorite[]>([]);
+const favorites = ref<DemoFavorite[]>([]);
 
 function load() {
-  const phone = String(uni.getStorageSync("zuji-demo-phone") || "");
+  const phone = getDemoAccount();
   if (!phone) {
     uni.redirectTo({ url: "/pages/login/index?return_to=%2Fpages%2Fprofile%2Ffavorites" });
     return;
   }
-  const stored = uni.getStorageSync(`zuji-favorites:${phone}`);
-  favorites.value = Array.isArray(stored) ? stored : [];
+  favorites.value = getFavorites(phone);
 }
 
 function openListing(id: string) { uni.navigateTo({ url: `/pages/listing/detail?id=${encodeURIComponent(id)}` }); }
 function remove(id: string) {
   favorites.value = favorites.value.filter((item) => item.id !== id);
-  const phone = String(uni.getStorageSync("zuji-demo-phone") || "");
-  uni.setStorageSync(`zuji-favorites:${phone}`, favorites.value);
+  saveFavorites(favorites.value);
 }
 function findHomes() { uni.switchTab({ url: "/pages/discover/index" }); }
 onShow(load);

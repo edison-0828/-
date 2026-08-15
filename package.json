@@ -1,5 +1,5 @@
 {
-  "name": "site-creator-vinext-starter",
+  "name": "zuji-platform",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -11,7 +11,11 @@
     "start": "vinext start",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "miniapp:install": "npm --prefix miniapp install",
+    "miniapp:dev": "npm --prefix miniapp run dev:mp-weixin",
+    "miniapp:build": "npm --prefix miniapp run build:mp-weixin",
+    "miniapp:type-check": "npm --prefix miniapp run type-check"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

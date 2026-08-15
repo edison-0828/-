@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
+import { registerDemoAccount } from "@/services/demo-storage";
 
 const phone = ref("");
 const agreed = ref(true);
@@ -14,11 +15,7 @@ onLoad((options) => {
 function register() {
   if (!phone.value.trim()) { uni.showToast({ title: "请输入手机号", icon: "none" }); return; }
   if (!agreed.value) { uni.showToast({ title: "请先同意用户协议和隐私政策", icon: "none" }); return; }
-  const accounts = uni.getStorageSync("zuji-demo-accounts");
-  const next = Array.isArray(accounts) ? accounts : [];
-  if (!next.includes(phone.value.trim())) next.push(phone.value.trim());
-  uni.setStorageSync("zuji-demo-accounts", next);
-  uni.setStorageSync("zuji-demo-phone", phone.value.trim());
+  registerDemoAccount(phone.value);
   uni.showToast({ title: "注册成功", icon: "success" });
   setTimeout(() => {
     if (returnTo.value) uni.redirectTo({ url: returnTo.value });

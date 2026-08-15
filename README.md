@@ -1,100 +1,61 @@
-# vinext-starter
+# 租迹
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+租迹是面向真实租客转租场景的小程序项目。当前主客户端是 `miniapp/` 中的 uni-app 微信小程序；仓库根目录保留 Web/API 支撑工程，为小程序提供房源、定位等接口。
 
-## Prerequisites
+## 项目边界
 
-- Node.js `>=22.13.0`
+| 目录 | 用途 | 技术栈 |
+| --- | --- | --- |
+| `miniapp/` | 当前主客户端，日常产品开发入口 | uni-app、Vue 3、TypeScript、Vite |
+| `app/` | Web 页面与小程序复用的 API | React、Next/vinext |
+| `db/`、`drizzle/` | 数据模型和迁移 | Drizzle、D1/SQLite |
+| `tests/` | Web/API 自动检查 | Node test |
 
-## Quick Start
+旧 Expo 客户端已经退出主开发流程，不再纳入版本控制。构建产物、截图输出、旧缓存和本地日志也不应提交。
+
+## 启动微信小程序
+
+环境要求：Node.js 22 或更高版本、微信开发者工具。
 
 ```bash
+# 1. 安装 Web/API 依赖
 npm install
+
+# 2. 安装小程序依赖
+npm run miniapp:install
+
+# 3. 启动 Web/API（终端一）
 npm run dev
+
+# 4. 启动 uni-app 微信小程序编译（终端二）
+npm run miniapp:dev
+```
+
+在微信开发者工具中导入：
+
+```text
+miniapp/dist/dev/mp-weixin
+```
+
+小程序 AppID 配置在 `miniapp/src/manifest.json`。模拟器调试可关闭合法域名校验；真机调试必须使用手机可访问的 HTTPS API，不能使用电脑的 `localhost`。
+
+## 常用检查
+
+```bash
+# uni-app 类型检查
+npm run miniapp:type-check
+
+# 微信小程序生产构建
+npm run miniapp:build
+
+# Web/API 构建
 npm run build
 ```
 
-This starter does not use `wrangler.jsonc`.
+## 开发约定
 
-## Included Shape
-
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
-
-The user ID is stable for the same user on the same Site and different across Sites. Email and name are intended for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
-```
-
-## Optional Dispatch-Owned ChatGPT Sign-In
-
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
-
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+- 小程序页面、组件和状态逻辑统一放在 `miniapp/src/`。
+- 不在页面中新增裸写的存储 key；统一通过小程序的数据访问层使用。
+- 公共业务类型放在 `miniapp/src/types/`。
+- 不提交 `dist/`、本地日志、截图输出、压缩包或依赖目录。
+- Demo 本地数据用于产品走查，正式接口接入时通过 `miniapp/src/services/` 替换。

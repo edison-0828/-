@@ -1,61 +1,46 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
+import {
+  addPublishedListing,
+  clearPublishDraft,
+  clearPublishEvidence,
+  getDemoAccount,
+  getPublishDraft,
+  getPublishEvidence,
+  isIdentityVerified,
+  savePublishEvidence,
+} from "@/services/demo-storage";
+import type { EvidenceFile, PublishDraft, PublishedListing } from "@/types/demo";
 
-const PUBLISH_DRAFT_KEY = "zuji-publish-draft";
-const PUBLISH_EVIDENCE_KEY = "zuji-publish-evidence";
-const DEMO_LISTINGS_KEY = "zuji-demo-listings";
 const MAX_DOCUMENT_BYTES = 15 * 1024 * 1024;
-
-type PublishDraft = {
-  title: string;
-  city: string;
-  district: string;
-  community: string;
-  rent: string;
-  availableFrom: string;
-  leaseEndsAt: string;
-  description?: string;
-  images: string[];
-};
-
-type EvidenceFile = {
-  name: string;
-  path: string;
-  size: number;
-  format: "image" | "pdf";
-};
 
 const draft = ref<PublishDraft | null>(null);
 const contract = ref<EvidenceFile | null>(null);
 const payments = ref<EvidenceFile[]>([]);
 
 function readEvidence() {
-  const stored = uni.getStorageSync(PUBLISH_EVIDENCE_KEY) as { contract?: EvidenceFile | null; payments?: EvidenceFile[] } | undefined;
-  if (!stored || typeof stored !== "object") return;
-  contract.value = stored.contract?.path ? stored.contract : null;
-  payments.value = Array.isArray(stored.payments) ? stored.payments.filter((file) => file?.path).slice(0, 6) : [];
+  const stored = getPublishEvidence();
+  contract.value = stored.contract;
+  payments.value = stored.payments;
 }
 
 function saveEvidence() {
-  uni.setStorageSync(PUBLISH_EVIDENCE_KEY, { contract: contract.value, payments: payments.value, updatedAt: Date.now() });
+  savePublishEvidence({ contract: contract.value, payments: payments.value, updatedAt: Date.now() });
 }
 
 onLoad(() => {
-  const phone = String(uni.getStorageSync("zuji-demo-phone") || "");
+  const phone = getDemoAccount();
   if (!phone) {
     uni.redirectTo({ url: "/pages/login/index?return_to=%2Fpages%2Fidentity%2Findex" });
     return;
   }
-  if (uni.getStorageSync(`zuji-real-name:${phone}`) !== "verified") {
+  if (!isIdentityVerified(phone)) {
     uni.redirectTo({ url: "/pages/identity/index" });
     return;
   }
 
-  const stored = uni.getStorageSync(PUBLISH_DRAFT_KEY) as PublishDraft | undefined;
-  draft.value = stored && typeof stored === "object" && stored.title
-    ? { ...stored, images: Array.isArray(stored.images) ? stored.images : [] }
-    : null;
+  draft.value = getPublishDraft();
   readEvidence();
   if (!draft.value) {
     uni.showModal({
@@ -185,10 +170,8 @@ function saveProofs() {
     return;
   }
   saveEvidence();
-  const storedListings = uni.getStorageSync(DEMO_LISTINGS_KEY);
-  const listings = Array.isArray(storedListings) ? storedListings : [];
-  const phone = String(uni.getStorageSync("zuji-demo-phone") || "");
-  listings.unshift({
+  const phone = getDemoAccount();
+  const listing: PublishedListing = {
     id: `demo-${Date.now()}`,
     publisherPhone: phone,
     title: draft.value?.title || "",
@@ -204,10 +187,10 @@ function saveProofs() {
     paymentCount: payments.value.length,
     status: "pending_review",
     createdAt: Date.now(),
-  });
-  uni.setStorageSync(DEMO_LISTINGS_KEY, listings.slice(0, 30));
-  uni.removeStorageSync(PUBLISH_DRAFT_KEY);
-  uni.removeStorageSync(PUBLISH_EVIDENCE_KEY);
+  };
+  addPublishedListing(listing);
+  clearPublishDraft();
+  clearPublishEvidence();
   uni.showModal({
     title: "已提交审核",
     content: "房源和证明材料已进入 Demo 审核队列，通常 2 小时内完成审核并上线。可在“我的发布”查看状态。",

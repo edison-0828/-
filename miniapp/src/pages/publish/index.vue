@@ -4,8 +4,7 @@ import { onLoad } from "@dcloudio/uni-app";
 import { getCityDistricts, PUBLISH_CITIES } from "@/data/cities";
 import { locateCity } from "@/services/api";
 import { useTabPageTransition } from "@/composables/useTabPageTransition";
-
-const PUBLISH_DRAFT_KEY = "zuji-publish-draft";
+import { getDemoAccount, getPublishDraft, savePublishDraft } from "@/services/demo-storage";
 
 const title = ref("");
 const city = ref("深圳");
@@ -75,18 +74,8 @@ function chooseImages() {
 function removeImage(index: number) { images.value.splice(index, 1); }
 
 function restoreDraft() {
-  const draft = uni.getStorageSync(PUBLISH_DRAFT_KEY) as {
-    title?: string;
-    city?: string;
-    district?: string;
-    community?: string;
-    rent?: string;
-    availableFrom?: string;
-    leaseEndsAt?: string;
-    description?: string;
-    images?: string[];
-  } | undefined;
-  if (!draft || typeof draft !== "object" || !draft.title) return false;
+  const draft = getPublishDraft();
+  if (!draft) return false;
   title.value = draft.title;
   community.value = draft.community || "";
   rent.value = draft.rent || "";
@@ -113,7 +102,7 @@ function continuePublish() {
     uni.showToast({ title: "租约到期不能早于可入住时间", icon: "none" });
     return;
   }
-  uni.setStorageSync(PUBLISH_DRAFT_KEY, {
+  savePublishDraft({
     title: title.value.trim(),
     city: city.value,
     district: district.value,
@@ -126,7 +115,7 @@ function continuePublish() {
     updatedAt: Date.now(),
   });
 
-  if (!uni.getStorageSync("zuji-demo-phone")) {
+  if (!getDemoAccount()) {
     uni.showToast({ title: "房源信息已保存，请先登录", icon: "none" });
     setTimeout(() => {
       uni.navigateTo({ url: "/pages/login/index?return_to=%2Fpages%2Fidentity%2Findex" });

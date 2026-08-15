@@ -41,3 +41,15 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+# local build and migration leftovers
+/.git-incomplete/
+/.sites/
+/.vite-old/
+/.wrangler-old/
+/_site_package/
+/node_modules-old/
+/output/
+/mobile/
+/*.tar.gz
+/.local-dev*.log

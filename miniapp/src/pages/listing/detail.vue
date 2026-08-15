@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { onLoad, onShow } from "@dcloudio/uni-app";
 import { fetchListing } from "@/services/api";
 import type { ListingView } from "@/types/listing";
+import { getDemoAccount, getFavorites, saveFavorites } from "@/services/demo-storage";
 
 const listing = ref<ListingView | null>(null);
 const loading = ref(true);
@@ -43,15 +44,13 @@ function previewGallery(index: number) {
 
 function toggleFavorite() {
   if (!listing.value) return;
-  const phone = String(uni.getStorageSync("zuji-demo-phone") || "");
+  const phone = getDemoAccount();
   if (!phone) {
     const target = encodeURIComponent(`/pages/listing/detail?id=${listing.value.id}`);
     uni.navigateTo({ url: `/pages/login/index?return_to=${target}` });
     return;
   }
-  const key = `zuji-favorites:${phone}`;
-  const stored = uni.getStorageSync(key);
-  const favorites = Array.isArray(stored) ? stored : [];
+  const favorites = getFavorites(phone);
   const index = favorites.findIndex((item) => item?.id === listing.value?.id);
   if (index >= 0) favorites.splice(index, 1);
   else favorites.unshift({
@@ -65,7 +64,7 @@ function toggleFavorite() {
     image: listing.value.image,
     savedAt: Date.now(),
   });
-  uni.setStorageSync(key, favorites);
+  saveFavorites(favorites, phone);
   saved.value = index < 0;
   favoriteNotice.value = saved.value ? "已收藏" : "已取消收藏";
   if (favoriteNoticeTimer) clearTimeout(favoriteNoticeTimer);
@@ -73,19 +72,18 @@ function toggleFavorite() {
 }
 
 function refreshFavorite() {
-  const phone = String(uni.getStorageSync("zuji-demo-phone") || "");
+  const phone = getDemoAccount();
   if (!phone || !listing.value) {
     saved.value = false;
     return;
   }
-  const stored = uni.getStorageSync(`zuji-favorites:${phone}`);
-  saved.value = Array.isArray(stored) && stored.some((item) => item?.id === listing.value?.id);
+  saved.value = getFavorites(phone).some((item) => item.id === listing.value?.id);
 }
 
 function openProtected(path: string) {
   if (!listing.value) return;
   const target = `${path}?id=${encodeURIComponent(listing.value.id)}`;
-  if (!uni.getStorageSync("zuji-demo-phone")) {
+  if (!getDemoAccount()) {
     uni.navigateTo({ url: `/pages/login/index?return_to=${encodeURIComponent(target)}` });
     return;
   }

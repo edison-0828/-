@@ -1,19 +1,16 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
+import { getDemoAccount, isIdentityVerified, setIdentityVerified } from "@/services/demo-storage";
 
 const phone = ref("");
 const verified = ref(false);
 const profileMode = ref(false);
 const agreeing = ref(true);
 
-function verificationKey(value: string) {
-  return `zuji-real-name:${value}`;
-}
-
 onLoad((options) => {
   profileMode.value = options?.mode === "profile";
-  phone.value = String(uni.getStorageSync("zuji-demo-phone") || "");
+  phone.value = getDemoAccount();
   if (!phone.value) {
     const target = profileMode.value
       ? "%2Fpages%2Fidentity%2Findex%3Fmode%3Dprofile"
@@ -22,7 +19,7 @@ onLoad((options) => {
     return;
   }
 
-  verified.value = uni.getStorageSync(verificationKey(phone.value)) === "verified";
+  verified.value = isIdentityVerified(phone.value);
   if (verified.value && !profileMode.value) {
     uni.redirectTo({ url: "/pages/publish/verification" });
   }
@@ -33,7 +30,7 @@ function completeDemoVerification() {
     uni.showToast({ title: "请先同意实名认证说明", icon: "none" });
     return;
   }
-  uni.setStorageSync(verificationKey(phone.value), "verified");
+  setIdentityVerified(phone.value);
   verified.value = true;
   uni.showToast({ title: "模拟认证成功", icon: "success" });
   setTimeout(() => uni.redirectTo({ url: "/pages/publish/verification" }), 450);

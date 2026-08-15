@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
+import { getDemoAccount, getPublishedListings } from "@/services/demo-storage";
+import type { PublishedListing } from "@/types/demo";
 
-type PublishedListing = { id: string; publisherPhone: string; title: string; city: string; district: string; community: string; rent: string; availableFrom: string; leaseEndsAt: string; description?: string; cover: string; contractName: string; paymentCount: number; status: string; createdAt: number };
 const listing = ref<PublishedListing | null>(null);
 const statusText: Record<string, string> = { pending_review: "审核中", published: "已发布", rejected: "需修改", closed: "已结束" };
 
 onLoad((options) => {
-  const phone = String(uni.getStorageSync("zuji-demo-phone") || "");
+  const phone = getDemoAccount();
   const id = typeof options?.id === "string" ? decodeURIComponent(options.id) : "";
   if (!phone) { uni.redirectTo({ url: `/pages/login/index?return_to=${encodeURIComponent(`/pages/profile/published-detail?id=${id}`)}` }); return; }
-  const stored = uni.getStorageSync("zuji-demo-listings");
-  listing.value = (Array.isArray(stored) ? stored : []).find((item) => item?.id === id && item?.publisherPhone === phone) || null;
+  listing.value = getPublishedListings(phone).find((item) => item.id === id) || null;
 });
 function back() { uni.navigateBack(); }
 </script>

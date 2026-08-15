@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
+import { setDemoAccount } from "@/services/demo-storage";
 
 const phone = ref("");
 const code = ref("");
@@ -33,7 +34,7 @@ function sendCode() {
 }
 
 function finishLogin(account: string, message = "登录成功") {
-  uni.setStorageSync("zuji-demo-phone", account);
+  setDemoAccount(account);
   uni.showToast({ title: message, icon: "success" });
   setTimeout(() => {
     if (returnTo.value) {

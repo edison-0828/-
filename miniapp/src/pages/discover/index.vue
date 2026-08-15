@@ -4,6 +4,7 @@ import { onLoad, onPullDownRefresh, onShow } from "@dcloudio/uni-app";
 import { fetchListings, locateCity } from "@/services/api";
 import type { ListingView } from "@/types/listing";
 import { useTabPageTransition } from "@/composables/useTabPageTransition";
+import { getDemoAccount, isIdentityVerified, setCurrentCity } from "@/services/demo-storage";
 
 const advantages = ["全部", "已核验", "近地铁", "预算友好", "近期可住"];
 const sorts = ["推荐排序", "租金从低到高", "租金从高到低", "最早可入住"];
@@ -108,14 +109,14 @@ function openIdentity() {
 }
 
 onLoad(() => {
-  uni.setStorageSync("zuji-city", "深圳");
+  setCurrentCity("深圳");
   void loadListings();
 });
 onShow(() => {
   city.value = "深圳";
-  uni.setStorageSync("zuji-city", "深圳");
-  phone.value = String(uni.getStorageSync("zuji-demo-phone") || "");
-  verified.value = Boolean(phone.value && uni.getStorageSync(`zuji-real-name:${phone.value}`) === "verified");
+  setCurrentCity("深圳");
+  phone.value = getDemoAccount();
+  verified.value = isIdentityVerified(phone.value);
   accountMenuOpen.value = false;
 });
 onPullDownRefresh(() => loadListings(false));
