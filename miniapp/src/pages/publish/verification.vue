@@ -15,6 +15,7 @@ type PublishDraft = {
   rent: string;
   availableFrom: string;
   leaseEndsAt: string;
+  description?: string;
   images: string[];
 };
 
@@ -197,6 +198,7 @@ function saveProofs() {
     rent: draft.value?.rent || "",
     availableFrom: draft.value?.availableFrom || "",
     leaseEndsAt: draft.value?.leaseEndsAt || "",
+    description: draft.value?.description || "",
     cover: draft.value?.images[0] || "",
     contractName: contract.value.name,
     paymentCount: payments.value.length,

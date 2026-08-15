@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { onLoad, onPullDownRefresh, onShow } from "@dcloudio/uni-app";
 import { fetchListings, locateCity } from "@/services/api";
 import type { ListingView } from "@/types/listing";
+import { useTabPageTransition } from "@/composables/useTabPageTransition";
 
 const advantages = ["全部", "已核验", "近地铁", "预算友好", "近期可住"];
 const sorts = ["推荐排序", "租金从低到高", "租金从高到低", "最早可入住"];
@@ -18,6 +19,7 @@ const locating = ref(false);
 const phone = ref("");
 const verified = ref(false);
 const accountMenuOpen = ref(false);
+const { pageReady } = useTabPageTransition();
 const accountLabel = computed(() => phone.value ? phone.value.slice(-2) || "我" : "登录");
 
 const visibleListings = computed(() => {
@@ -120,7 +122,7 @@ onPullDownRefresh(() => loadListings(false));
 </script>
 
 <template>
-  <view class="page">
+  <view :class="['page', 'tab-page-transition', { 'tab-page-ready': pageReady }]">
     <view class="hero">
       <view class="hero-top">
         <view class="city" @click="useLocation"><text>{{ locating ? "定位中" : city }}</text></view>

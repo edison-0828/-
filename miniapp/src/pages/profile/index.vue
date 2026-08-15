@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
+import { useTabPageTransition } from "@/composables/useTabPageTransition";
 
 const phone = ref("");
 const verified = ref(false);
+const { pageReady } = useTabPageTransition();
 const listings = ref<Array<{
   id: string;
   publisherPhone: string;
@@ -52,7 +54,7 @@ onShow(() => {
 </script>
 
 <template>
-  <view class="page">
+  <view :class="['page', 'tab-page-transition', { 'tab-page-ready': pageReady }]">
     <view class="profile-card">
       <view class="avatar">租</view>
       <text class="title">{{ phone ? "已登录租迹" : "登录租迹" }}</text>

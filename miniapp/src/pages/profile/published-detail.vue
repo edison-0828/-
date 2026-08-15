@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 
-type PublishedListing = { id: string; publisherPhone: string; title: string; city: string; district: string; community: string; rent: string; availableFrom: string; leaseEndsAt: string; cover: string; contractName: string; paymentCount: number; status: string; createdAt: number };
+type PublishedListing = { id: string; publisherPhone: string; title: string; city: string; district: string; community: string; rent: string; availableFrom: string; leaseEndsAt: string; description?: string; cover: string; contractName: string; paymentCount: number; status: string; createdAt: number };
 const listing = ref<PublishedListing | null>(null);
 const statusText: Record<string, string> = { pending_review: "审核中", published: "已发布", rejected: "需修改", closed: "已结束" };
 
@@ -23,6 +23,7 @@ function back() { uni.navigateBack(); }
       <view class="status"><text>{{ statusText[listing.status] || listing.status }}</text><text>{{ listing.status === "pending_review" ? "预计 2 小时内完成审核，审核通过后自动上线。" : "房源当前状态已更新，可在我的发布中随时查看。" }}</text></view>
       <image v-if="listing.cover" class="cover" :src="listing.cover" mode="aspectFill" />
       <view class="summary"><text>{{ listing.title }}</text><text>{{ listing.city }} · {{ listing.district }} · {{ listing.community }}</text><text class="rent">¥{{ listing.rent }}/月</text></view>
+      <view v-if="listing.description" class="description"><text>房源说明</text><text>{{ listing.description }}</text></view>
       <view class="details"><view><text>可入住时间</text><text>{{ listing.availableFrom }}</text></view><view><text>租约到期</text><text>{{ listing.leaseEndsAt }}</text></view><view><text>租赁合同</text><text>{{ listing.contractName || "已提交" }}</text></view><view><text>租金证明</text><text>{{ listing.paymentCount ? `已提交 ${listing.paymentCount} 份` : "未提交（选填）" }}</text></view></view>
       <view class="timeline"><text>审核进度</text><view class="active"><text>✓</text><view><text>已提交</text><text>房源资料与证明材料已保存</text></view></view><view><text>2</text><view><text>审核中 · 预计 2 小时内</text><text>核对合同、地址、租期和租金</text></view></view><view><text>3</text><view><text>公开展示</text><text>审核通过后自动进入找房列表</text></view></view></view>
     </template>
@@ -39,6 +40,9 @@ function back() { uni.navigateBack(); }
 .summary text { display: block; font-size: 29rpx; font-weight: 850; }
 .summary text + text { margin-top: 10rpx; color: #8d95a0; font-size: 20rpx; font-weight: 400; }
 .summary .rent { color: #181a20; font-size: 30rpx; font-weight: 850; }
+.description { margin-top: 20rpx; padding: 25rpx; border: 1rpx solid #e2e5e8; border-radius: 21rpx; background: #fff; }
+.description text { display: block; font-size: 24rpx; font-weight: 850; }
+.description text + text { margin-top: 13rpx; color: #68717d; font-size: 21rpx; font-weight: 400; line-height: 1.75; white-space: pre-wrap; }
 .details, .timeline { margin-top: 20rpx; padding: 25rpx; border: 1rpx solid #e2e5e8; border-radius: 21rpx; background: #fff; }
 .details view { display: flex; justify-content: space-between; gap: 25rpx; padding: 19rpx 0; border-top: 1rpx solid #eceef0; }
 .details view:first-child { border-top: 0; }

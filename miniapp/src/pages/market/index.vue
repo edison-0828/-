@@ -3,10 +3,12 @@ import { computed, ref } from "vue";
 import { onLoad, onPullDownRefresh } from "@dcloudio/uni-app";
 import { fetchListings } from "@/services/api";
 import type { ListingView } from "@/types/listing";
+import { useTabPageTransition } from "@/composables/useTabPageTransition";
 
 const city = ref("深圳");
 const listings = ref<ListingView[]>([]);
 const loading = ref(true);
+const { pageReady } = useTabPageTransition();
 
 const average = computed(() => listings.value.length ? Math.round(listings.value.reduce((sum, item) => sum + item.price, 0) / listings.value.length) : 0);
 const lowest = computed(() => listings.value.length ? Math.min(...listings.value.map((item) => item.price)) : 0);
@@ -30,7 +32,7 @@ onPullDownRefresh(load);
 </script>
 
 <template>
-  <view class="page">
+  <view :class="['page', 'tab-page-transition', { 'tab-page-ready': pageReady }]">
     <view class="hero">
       <text class="kicker">{{ city }}租房行情</text>
       <text class="headline">先看行情，再决定住哪里</text>

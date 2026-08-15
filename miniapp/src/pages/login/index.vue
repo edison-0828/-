@@ -32,14 +32,9 @@ function sendCode() {
   }, 500);
 }
 
-function loginByPhone() {
-  if (!requireAgreement()) return;
-  if (!phone.value.trim()) {
-    uni.showToast({ title: "测试模式下输入任意手机号即可", icon: "none" });
-    return;
-  }
-  uni.setStorageSync("zuji-demo-phone", phone.value.trim());
-  uni.showToast({ title: "登录成功", icon: "success" });
+function finishLogin(account: string, message = "登录成功") {
+  uni.setStorageSync("zuji-demo-phone", account);
+  uni.showToast({ title: message, icon: "success" });
   setTimeout(() => {
     if (returnTo.value) {
       uni.redirectTo({ url: returnTo.value });
@@ -51,6 +46,15 @@ function loginByPhone() {
   }, 450);
 }
 
+function loginByPhone() {
+  if (!requireAgreement()) return;
+  if (!phone.value.trim()) {
+    uni.showToast({ title: "测试模式下输入任意手机号即可", icon: "none" });
+    return;
+  }
+  finishLogin(phone.value.trim());
+}
+
 function loginByWechat() {
   if (!requireAgreement()) return;
   uni.login({
@@ -60,11 +64,7 @@ function loginByWechat() {
         uni.showToast({ title: "没有获取到微信登录凭证", icon: "none" });
         return;
       }
-      uni.showModal({
-        title: "微信授权成功",
-        content: "已获得临时登录凭证。下一阶段会把它发送到租迹服务端建立账号。",
-        showCancel: false,
-      });
+      finishLogin("微信用户", "微信登录成功");
     },
     fail() {
       uni.showToast({ title: "微信登录调起失败，请稍后重试", icon: "none" });

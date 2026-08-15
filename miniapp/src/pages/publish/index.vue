@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import { getCityDistricts, PUBLISH_CITIES } from "@/data/cities";
 import { locateCity } from "@/services/api";
+import { useTabPageTransition } from "@/composables/useTabPageTransition";
 
 const PUBLISH_DRAFT_KEY = "zuji-publish-draft";
 
@@ -17,8 +18,10 @@ const community = ref("");
 const rent = ref("");
 const availableFrom = ref("");
 const leaseEndsAt = ref("");
+const description = ref("");
 const images = ref<string[]>([]);
 const today = new Date().toISOString().slice(0, 10);
+const { pageReady } = useTabPageTransition();
 
 function changeCity(event: { detail: { value: string } }) {
   cityIndex.value = Number(event.detail.value);
@@ -80,6 +83,7 @@ function restoreDraft() {
     rent?: string;
     availableFrom?: string;
     leaseEndsAt?: string;
+    description?: string;
     images?: string[];
   } | undefined;
   if (!draft || typeof draft !== "object" || !draft.title) return false;
@@ -88,6 +92,7 @@ function restoreDraft() {
   rent.value = draft.rent || "";
   availableFrom.value = draft.availableFrom || "";
   leaseEndsAt.value = draft.leaseEndsAt || "";
+  description.value = draft.description || "";
   images.value = Array.isArray(draft.images) ? draft.images : [];
 
   const restoredCityIndex = PUBLISH_CITIES.indexOf(draft.city as typeof PUBLISH_CITIES[number]);
@@ -116,6 +121,7 @@ function continuePublish() {
     rent: rent.value,
     availableFrom: availableFrom.value,
     leaseEndsAt: leaseEndsAt.value,
+    description: description.value.trim(),
     images: [...images.value],
     updatedAt: Date.now(),
   });
@@ -137,7 +143,7 @@ onLoad(() => {
 </script>
 
 <template>
-  <view class="page">
+  <view :class="['page', 'tab-page-transition', { 'tab-page-ready': pageReady }]">
     <view class="intro"><text>发布真实转租</text><text>先填写房源，再单独完成实名与本套房合同核验。</text></view>
     <view class="form">
       <label><text>房源标题</text><input v-model="title" placeholder="例如：近地铁次卧，采光很好" maxlength="40" /></label>
@@ -154,6 +160,7 @@ onLoad(() => {
         <label><text>可入住时间</text><picker mode="date" :value="availableFrom" :start="today" @change="availableFrom = $event.detail.value"><view class="select-field"><text :class="{ placeholder: !availableFrom }">{{ availableFrom || "请选择" }}</text><text>⌄</text></view></picker></label>
         <label><text>租约到期时间</text><picker mode="date" :value="leaseEndsAt" :start="availableFrom || today" @change="leaseEndsAt = $event.detail.value"><view class="select-field"><text :class="{ placeholder: !leaseEndsAt }">{{ leaseEndsAt || "请选择" }}</text><text>⌄</text></view></picker></label>
       </view>
+      <label><text>房源说明（选填）</text><textarea v-model="description" maxlength="500" placeholder="例如：家具配置、室友情况、通勤距离和转租原因" /></label>
       <view class="image-field">
         <view class="label"><text>房源图片</text><text>{{ images.length }}/8</text></view>
         <view class="images">
@@ -176,6 +183,7 @@ onLoad(() => {
 label { display: block; margin-bottom: 28rpx; }
 label > text, .label text { display: block; margin-bottom: 12rpx; font-size: 23rpx; font-weight: 700; }
 input, .rent { height: 88rpx; padding: 0 22rpx; border: 1rpx solid #dfe2e6; border-radius: 16rpx; background: #f8f9fa; font-size: 26rpx; }
+textarea { box-sizing: border-box; width: 100%; height: 190rpx; padding: 20rpx 22rpx; border: 1rpx solid #dfe2e6; border-radius: 16rpx; background: #f8f9fa; font-size: 24rpx; line-height: 1.65; }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx; }
 .field-title { display: flex; align-items: center; justify-content: space-between; min-height: 34rpx; margin-bottom: 12rpx; }
 .field-title > text { font-size: 23rpx; font-weight: 700; }
