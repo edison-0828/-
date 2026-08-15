@@ -121,3 +121,19 @@ test("keeps the nationwide market entry in global navigation", async () => {
   assert.match(market, /示例成交记录/);
   assert.match(market, /snapshot\.areaRows\.map/);
 });
+
+test("keeps listing details focused on mobile decisions", async () => {
+  const [detail, styles] = await Promise.all([
+    read("app/listings/[id]/ListingDetailClient.tsx"),
+    read("app/marketplace.css"),
+  ]);
+
+  assert.match(detail, /zuji-detail-photo-controls/);
+  assert.match(detail, /zuji-detail-tags/);
+  assert.match(detail, /zuji-detail-mobile-actions/);
+  assert.match(detail, /预约看房/);
+  assert.match(detail, /本套房合同/);
+  assert.match(styles, /Listing detail — clear information hierarchy/);
+  assert.match(styles, /bottom:calc\(64px \+ env\(safe-area-inset-bottom\)\)/);
+  assert.match(styles, /zuji-detail-page \.zuji-contact-card\{display:none\}/);
+});

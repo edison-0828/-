@@ -1,0 +1,25 @@
+{
+  "name": "租迹",
+  "appid": "wx9dec0139d06054ad",
+  "description": "真实租客发布的全国转租信息平台",
+  "versionName": "0.1.0",
+  "versionCode": "10",
+  "transformPx": false,
+  "mp-weixin": {
+    "appid": "wx9dec0139d06054ad",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "postcss": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "permission": {
+      "scope.userLocation": {
+        "desc": "用于推荐你所在城市的转租房源"
+      }
+    }
+  },
+  "uniStatistics": { "enable": false },
+  "vueVersion": "3"
+}

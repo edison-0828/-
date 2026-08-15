@@ -1009,6 +1009,77 @@ html.zuji-route-changing .zuji-route-content{cursor:progress}
 
 /* Keep the end of the find page focused on listings, especially on phones. */
 .zuji-find-list-end{display:flex;align-items:center;gap:14px;width:min(460px,100%);margin:28px auto 0;color:#8d949d;text-align:center}
+
+/* Listing detail — clear information hierarchy and thumb-friendly mobile actions. */
+.zuji-detail-page{background:#f5f5f5}
+.zuji-detail-page .zuji-breadcrumb{align-items:center;overflow:hidden;white-space:nowrap}
+.zuji-detail-page .zuji-breadcrumb a,.zuji-detail-page .zuji-breadcrumb b{overflow:hidden;text-overflow:ellipsis}
+.zuji-detail-page .zuji-detail-main-photo{background:#e7e8ea}
+.zuji-detail-photo-controls{position:absolute;right:18px;bottom:15px;display:flex;gap:7px}
+.zuji-detail-photo-controls button{display:grid;place-items:center;width:38px;height:38px;border:1px solid #ffffff5c;border-radius:50%;background:#181a20c9;color:#fff;font-size:25px;line-height:1;backdrop-filter:blur(8px)}
+.zuji-detail-page .zuji-detail-thumbs{max-height:500px;overflow-y:auto;scrollbar-width:thin}
+.zuji-detail-page .zuji-detail-thumbs button{min-height:0;cursor:pointer}
+.zuji-detail-price-mobile{display:none}
+.zuji-detail-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}
+.zuji-detail-tags>*{padding:6px 9px;border-radius:7px;background:#f0f1f2;color:#626b78;font-size:9px;font-style:normal;font-weight:650}
+.zuji-detail-tags>b{background:#fff3c4;color:#735900}
+.zuji-detail-page .zuji-facts{grid-template-columns:repeat(4,minmax(0,1fr));padding:22px 0;border-bottom:1px solid #e3e6e8}
+.zuji-detail-page .zuji-facts>div{min-width:0}
+.zuji-detail-page .zuji-facts b{overflow-wrap:anywhere}
+.zuji-detail-section-kicker{display:block;margin-bottom:8px;color:#907000;font-size:9px;font-weight:800;letter-spacing:.12em}
+.zuji-detail-page .zuji-evidence{grid-template-columns:repeat(3,minmax(0,1fr))}
+.zuji-detail-page .zuji-evidence>div{min-width:0}
+.zuji-detail-mobile-actions{display:none}
+.zuji-detail-page .zuji-dialog-backdrop{z-index:90}
+
+@media(max-width:720px){
+  .zuji-detail-page{padding-bottom:158px}
+  .zuji-detail-page .zuji-breadcrumb{width:calc(100% - 32px);padding-top:16px;padding-bottom:14px;font-size:10px}
+  .zuji-detail-page .zuji-breadcrumb b{max-width:34vw}
+  .zuji-detail-page .zuji-detail-gallery{display:block;width:100%}
+  .zuji-detail-page .zuji-detail-main-photo{height:clamp(280px,72vw,370px);border-radius:0}
+  .zuji-detail-page .zuji-detail-main-photo>span{left:14px;bottom:13px;padding:6px 9px;border-radius:999px}
+  .zuji-detail-photo-controls{right:13px;bottom:10px}
+  .zuji-detail-photo-controls button{width:42px;height:42px}
+  .zuji-detail-page .zuji-detail-thumbs{display:flex;gap:7px;width:calc(100% - 32px);max-height:none;margin:9px auto 0;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:none}
+  .zuji-detail-page .zuji-detail-thumbs::-webkit-scrollbar{display:none}
+  .zuji-detail-page .zuji-detail-thumbs button{flex:0 0 76px;height:54px;aspect-ratio:auto;border-width:2px;border-radius:9px;scroll-snap-align:start}
+  .zuji-detail-page .zuji-detail-layout{display:block;width:calc(100% - 32px);padding-top:18px;padding-bottom:32px}
+  .zuji-detail-page .zuji-detail-title{padding:22px;border:1px solid #e2e4e7;border-radius:16px;background:#fff;box-shadow:0 8px 28px #181a2008}
+  .zuji-detail-page .zuji-detail-title>div{min-width:0}
+  .zuji-detail-page .zuji-detail-title>div>span{font-size:10px}
+  .zuji-detail-page .zuji-detail-title h1{margin:10px 0 0;font-size:25px;line-height:1.35;letter-spacing:-.04em}
+  .zuji-detail-page .zuji-detail-title>button{display:none}
+  .zuji-detail-price-mobile{display:flex;align-items:baseline;margin-top:14px}
+  .zuji-detail-price-mobile strong{font-size:28px;letter-spacing:-.03em}
+  .zuji-detail-price-mobile em{margin-left:3px;color:#8a929d;font-size:10px;font-style:normal}
+  .zuji-detail-tags{margin-top:13px}
+  .zuji-detail-page .zuji-facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 0;padding:0;border:0}
+  .zuji-detail-page .zuji-facts>div,.zuji-detail-page .zuji-facts>div+div{padding:15px;border:1px solid #e4e6e8;border-radius:12px;background:#fff}
+  .zuji-detail-page .zuji-facts span{margin-bottom:6px;font-size:9px}
+  .zuji-detail-page .zuji-facts b{font-size:12px;line-height:1.45}
+  .zuji-detail-page .zuji-detail-section{padding:29px 2px}
+  .zuji-detail-page .zuji-detail-section h2{margin:0 0 13px;font-size:20px}
+  .zuji-detail-page .zuji-detail-section>p{font-size:13px;line-height:1.85}
+  .zuji-detail-page .zuji-evidence{grid-template-columns:1fr;gap:8px}
+  .zuji-detail-page .zuji-evidence>div{padding:13px;background:#fffaf0}
+  .zuji-detail-page .zuji-safe-box{margin-top:18px;padding:16px}
+  .zuji-detail-page .zuji-contact-card{display:none}
+  .zuji-detail-page .zuji-footer{display:none}
+  .zuji-detail-mobile-actions{position:fixed;right:0;bottom:calc(64px + env(safe-area-inset-bottom));left:0;z-index:58;display:grid;grid-template-columns:62px minmax(82px,.8fr) minmax(126px,1.25fr);align-items:center;gap:8px;padding:10px max(12px,env(safe-area-inset-right)) 10px max(12px,env(safe-area-inset-left));border-top:1px solid #e2e4e7;background:#fffffff2;box-shadow:0 -12px 30px #181a2012;backdrop-filter:saturate(180%) blur(22px)}
+  .zuji-detail-mobile-actions button{min-height:46px;border-radius:12px;font-size:12px;font-weight:800;-webkit-tap-highlight-color:transparent}
+  .zuji-detail-mobile-actions>button:first-child{display:grid;place-items:center;gap:1px;background:transparent;color:#596170;font-size:9px;font-weight:650}
+  .zuji-detail-mobile-actions>button:first-child i{font-size:22px;font-style:normal;line-height:1}
+  .zuji-detail-mobile-actions>button:first-child.saved{color:#a57e00}
+  .zuji-detail-mobile-actions .message{border:1px solid #181a20;background:#fff;color:#181a20}
+  .zuji-detail-mobile-actions .viewing{background:#f0b90b;color:#181a20;box-shadow:0 8px 20px #f0b90b35}
+  .zuji-detail-mobile-actions button:active{transform:scale(.97)}
+  .zuji-detail-mobile-actions.pending{display:flex;justify-content:space-between;min-height:66px;padding-inline:18px}
+  .zuji-detail-mobile-actions.pending span{color:#8a929d;font-size:9px}
+  .zuji-detail-mobile-actions.pending b{font-size:11px}
+  .zuji-detail-page .zuji-dialog-backdrop{align-items:end;padding:0}
+  .zuji-detail-page .zuji-dialog{width:100%;max-height:calc(100dvh - 72px);overflow-y:auto;padding:30px 22px calc(26px + env(safe-area-inset-bottom));border-radius:24px 24px 0 0}
+}
 .zuji-find-list-end>span{flex:1;height:1px;background:#dedfe1}
 .zuji-find-list-end>p{flex:none;margin:0}
 .zuji-find-list-end b,.zuji-find-list-end small{display:block}

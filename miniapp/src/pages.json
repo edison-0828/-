@@ -1,0 +1,90 @@
+{
+  "pages": [
+    {
+      "path": "pages/discover/index",
+      "style": {
+        "navigationBarTitleText": "租迹",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
+      }
+    },
+    {
+      "path": "pages/listing/detail",
+      "style": { "navigationBarTitleText": "房源详情" }
+    },
+    {
+      "path": "pages/profile/favorites",
+      "style": { "navigationBarTitleText": "我的收藏" }
+    },
+    {
+      "path": "pages/profile/listings",
+      "style": { "navigationBarTitleText": "我的发布" }
+    },
+    {
+      "path": "pages/profile/published-detail",
+      "style": { "navigationBarTitleText": "发布详情" }
+    },
+    {
+      "path": "pages/profile/viewings",
+      "style": { "navigationBarTitleText": "看房预约" }
+    },
+    {
+      "path": "pages/viewing/create",
+      "style": { "navigationBarTitleText": "预约看房" }
+    },
+    {
+      "path": "pages/messages/index",
+      "style": { "navigationBarTitleText": "站内消息" }
+    },
+    {
+      "path": "pages/messages/thread",
+      "style": { "navigationBarTitleText": "在线咨询" }
+    },
+    {
+      "path": "pages/market/index",
+      "style": { "navigationBarTitleText": "租房行情", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/publish/index",
+      "style": { "navigationBarTitleText": "发布转租" }
+    },
+    {
+      "path": "pages/publish/verification",
+      "style": { "navigationBarTitleText": "房源核验" }
+    },
+    {
+      "path": "pages/identity/index",
+      "style": { "navigationBarTitleText": "实名认证" }
+    },
+    {
+      "path": "pages/profile/index",
+      "style": { "navigationBarTitleText": "我的" }
+    },
+    {
+      "path": "pages/login/index",
+      "style": { "navigationBarTitleText": "登录租迹" }
+    },
+    {
+      "path": "pages/register/index",
+      "style": { "navigationBarTitleText": "注册租迹" }
+    }
+  ],
+  "tabBar": {
+    "color": "#8a919b",
+    "selectedColor": "#181a20",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/discover/index", "text": "找房", "iconPath": "static/tabbar/find.png", "selectedIconPath": "static/tabbar/find-active.png" },
+      { "pagePath": "pages/publish/index", "text": "转租", "iconPath": "static/tabbar/publish.png", "selectedIconPath": "static/tabbar/publish-active.png" },
+      { "pagePath": "pages/market/index", "text": "行情", "iconPath": "static/tabbar/market.png", "selectedIconPath": "static/tabbar/market-active.png" },
+      { "pagePath": "pages/profile/index", "text": "我的", "iconPath": "static/tabbar/profile.png", "selectedIconPath": "static/tabbar/profile-active.png" }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "租迹",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f5f6f7"
+  }
+}
