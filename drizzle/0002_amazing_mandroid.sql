@@ -1,1 +1,0 @@
-ALTER TABLE `viewing_requests` ADD `publisher_note` text DEFAULT '' NOT NULL;

@@ -1,4 +1,5 @@
 import type { ApiListing, ListingView } from "@/types/listing";
+import { demoListings } from "@/data/demo-listings";
 
 const fallbackImages = [
   "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1000&q=80",
@@ -6,15 +7,11 @@ const fallbackImages = [
   "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1000&q=80",
 ];
 
-let apiBase = __ZUJI_API_BASE_URL__.replace(/\/$/, "");
-// #ifdef H5
-apiBase = "";
-// #endif
-
-export const API_BASE_URL = apiBase;
+export const API_BASE_URL = __ZUJI_API_BASE_URL__.replace(/\/$/, "");
 
 export function absoluteAssetUrl(path: string) {
   if (/^https?:\/\//.test(path)) return path;
+  if (!API_BASE_URL) return path;
   return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
@@ -51,18 +48,29 @@ function request<T>(path: string): Promise<T> {
 }
 
 export async function fetchListings(city = "全国") {
+  if (!API_BASE_URL) {
+    return demoListings
+      .filter((listing) => city === "全国" || listing.city === city)
+      .map(toListingView);
+  }
   const query = city && city !== "全国" ? `?city=${encodeURIComponent(city)}` : "";
   const payload = await request<{ listings?: ApiListing[]; error?: string }>(`/api/listings${query}`);
   return (payload.listings || []).map(toListingView);
 }
 
 export async function fetchListing(id: string) {
+  if (!API_BASE_URL) {
+    const listing = demoListings.find((item) => item.id === id);
+    if (!listing) throw new Error("房源不存在或已下架");
+    return toListingView(listing);
+  }
   const payload = await request<{ listing?: ApiListing; error?: string }>(`/api/listings/${encodeURIComponent(id)}`);
   if (!payload.listing) throw new Error(payload.error || "房源不存在或已下架");
   return toListingView(payload.listing);
 }
 
 export async function locateCity(latitude: number, longitude: number) {
+  if (!API_BASE_URL) return "深圳";
   const payload = await request<{ city?: string | null }>(`/api/location?lat=${latitude}&lng=${longitude}`);
   return payload.city || null;
 }

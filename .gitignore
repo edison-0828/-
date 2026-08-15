@@ -1,55 +1,7 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/mobile/node_modules/
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/.vinext/
-/out/
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
+node_modules/
+dist/
 .env*
-
-# vercel
-.vercel
-
-# typescript
-next-env.d.ts
-/dist/
-/.wrangler/
-/outputs/
-/work/
-
-# local build and migration leftovers
-/.git-incomplete/
-/.sites/
-/.vite-old/
-/.wrangler-old/
-/_site_package/
-/node_modules-old/
-/output/
-/mobile/
-/*.tar.gz
-/.local-dev*.log
+!.env.example
+*.log
+*.tsbuildinfo
+.DS_Store
