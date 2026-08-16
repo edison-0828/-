@@ -32,3 +32,10 @@ logs/
 tmp/
 !**/src/main/resources/lib/*.jar
 !**/allatori/**
+
+# Node.js dependencies and generated builds
+node_modules/
+dist/
+
+# Local editor settings
+.vscode/
