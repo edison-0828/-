@@ -203,6 +203,13 @@
                 <version>${snowy.version}</version>
             </dependency>
 
+            <!-- snowy-plugin-zj -->
+            <dependency>
+                <groupId>vip.xiaonuo</groupId>
+                <artifactId>snowy-plugin-zj</artifactId>
+                <version>${snowy.version}</version>
+            </dependency>
+
             <!-- nashorn-core -->
             <dependency>
                 <groupId>org.openjdk.nashorn</groupId>

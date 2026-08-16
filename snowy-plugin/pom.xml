@@ -35,5 +35,8 @@
 
         <!-- 系统功能插件 -->
         <module>snowy-plugin-sys</module>
+
+        <!-- 租迹业务插件 -->
+        <module>snowy-plugin-zj</module>
     </modules>
 </project>

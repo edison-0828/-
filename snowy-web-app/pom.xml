@@ -118,6 +118,12 @@
             <groupId>vip.xiaonuo</groupId>
             <artifactId>snowy-plugin-sys</artifactId>
         </dependency>
+
+        <!-- 租迹业务插件 -->
+        <dependency>
+            <groupId>vip.xiaonuo</groupId>
+            <artifactId>snowy-plugin-zj</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
